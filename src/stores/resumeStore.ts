@@ -33,6 +33,8 @@ type State = {
   selectedNodeId: string | null
   view: 'builder' | 'preview' | 'both'
   hasHydrated: boolean
+  resumeInkOverride: string | null
+  pickerPosition: { x: number; y: number } | null
 }
 
 type Actions = {
@@ -40,6 +42,8 @@ type Actions = {
   setView: (v: State['view']) => void
   setSelectedNode: (id: string | null) => void
   setHasHydrated: (b: boolean) => void
+  setResumeInk: (hex: string | null) => void
+  setPickerPosition: (pos: { x: number; y: number } | null) => void
 
   createResume: (name?: string) => string
   deleteResume: (id: string) => void
@@ -70,11 +74,15 @@ export const useResumeStore = create<State & Actions>()(
       selectedNodeId: null,
       view: 'both',
       hasHydrated: false,
+      resumeInkOverride: null,
+      pickerPosition: null,
 
       setTheme: (t) => set({ theme: t }),
       setView: (v) => set({ view: v }),
       setSelectedNode: (id) => set({ selectedNodeId: id }),
       setHasHydrated: (b) => set({ hasHydrated: b }),
+      setResumeInk: (hex) => set({ resumeInkOverride: hex }),
+      setPickerPosition: (pos) => set({ pickerPosition: pos }),
 
       createResume: (name) => {
         const r = buildSeedResume(name ?? `Resume ${Object.keys(get().resumes).length + 1}`)
@@ -236,6 +244,8 @@ export const useResumeStore = create<State & Actions>()(
           resumes: s.resumes,
           order: s.order,
           view: s.view,
+          resumeInkOverride: s.resumeInkOverride,
+          pickerPosition: s.pickerPosition,
         }) as State & Actions,
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true)

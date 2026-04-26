@@ -7,6 +7,7 @@ import { useResumeStore } from '../stores/resumeStore'
 import { cn } from '../lib/cn'
 import { Sparkles } from 'lucide-react'
 import { Button } from '../components/ui/Button'
+import { ColorPickerDock } from '../components/ui/ColorPickerDock'
 
 export const Route = createFileRoute('/builder/$resumeId')({ component: Builder })
 
@@ -90,6 +91,7 @@ function Builder() {
         </div>
         <Inspector resumeId={resumeId} />
       </div>
+      <ColorPickerDock />
     </div>
   )
 }

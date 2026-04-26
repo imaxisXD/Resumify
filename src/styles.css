@@ -1,0 +1,336 @@
+@import "tailwindcss";
+
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource/geist-sans/300.css";
+@import "@fontsource/geist-sans/400.css";
+@import "@fontsource/geist-sans/500.css";
+@import "@fontsource/geist-sans/600.css";
+@import "@fontsource/geist-mono/400.css";
+@import "@fontsource/geist-mono/500.css";
+
+@import "@xyflow/react/dist/style.css";
+
+@theme {
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+
+  --color-bg: #0a0a0c;
+  --color-bg-elevated: #101013;
+  --color-surface: #15151a;
+  --color-surface-2: #1c1c22;
+  --color-surface-3: #25252d;
+  --color-border: #26262d;
+  --color-border-strong: #34343d;
+  --color-text: #e9e9ee;
+  --color-text-muted: #8b8b95;
+  --color-text-faint: #5a5a64;
+
+  --color-accent: #7c7cff;
+  --color-accent-hi: #9b9bff;
+  --color-accent-soft: #2a2a55;
+  --color-accent-glow: rgba(124, 124, 255, 0.18);
+
+  --color-danger: #ff6b6b;
+  --color-success: #4ade80;
+  --color-paper: #ffffff;
+  --color-paper-ink: #15151a;
+
+  /* Strong custom easings — defaults are too weak.
+     ease-out for entries and feedback (starts fast, feels responsive).
+     ease-in-out for on-screen motion (natural accel/decel).
+     ease-drawer is the iOS-style curve from Ionic. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --bg: var(--color-bg);
+  --bg-elevated: var(--color-bg-elevated);
+  --surface: var(--color-surface);
+  --surface-2: var(--color-surface-2);
+  --surface-3: var(--color-surface-3);
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --text: var(--color-text);
+  --text-muted: var(--color-text-muted);
+  --text-faint: var(--color-text-faint);
+  --accent: var(--color-accent);
+  --accent-hi: var(--color-accent-hi);
+  --accent-soft: var(--color-accent-soft);
+  --accent-glow: var(--color-accent-glow);
+  --danger: var(--color-danger);
+  --success: var(--color-success);
+  --paper: var(--color-paper);
+  --paper-ink: var(--color-paper-ink);
+  --grid-dot: rgba(255, 255, 255, 0.045);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f4f0;
+  --bg-elevated: #fafaf7;
+  --surface: #ffffff;
+  --surface-2: #fafaf7;
+  --surface-3: #efeee8;
+  --border: #e3e1d8;
+  --border-strong: #cfccc0;
+  --text: #1a1a1f;
+  --text-muted: #6b6b73;
+  --text-faint: #9a9aa3;
+  --accent: #5b5bef;
+  --accent-hi: #7575f5;
+  --accent-soft: #e6e6ff;
+  --accent-glow: rgba(91, 91, 239, 0.16);
+  --danger: #dc2626;
+  --success: #16a34a;
+  --paper: #ffffff;
+  --paper-ink: #15151a;
+  --grid-dot: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="riso"] {
+  color-scheme: light;
+  --bg: oklch(95% 0.025 90);
+  --bg-elevated: oklch(98% 0.018 90);
+  --surface: oklch(97% 0.020 90);
+  --surface-2: oklch(94% 0.028 88);
+  --surface-3: oklch(90% 0.035 88);
+  --border: oklch(82% 0.040 90);
+  --border-strong: oklch(20% 0.025 280);
+  --text: oklch(20% 0.025 280);
+  --text-muted: oklch(40% 0.040 280);
+  --text-faint: oklch(60% 0.045 280);
+  --accent: oklch(68% 0.24 5);
+  --accent-hi: oklch(50% 0.21 268);
+  --accent-soft: oklch(86% 0.10 5);
+  --accent-glow: oklch(68% 0.24 5 / 0.18);
+  --danger: oklch(60% 0.22 25);
+  --success: oklch(58% 0.18 145);
+  --paper: oklch(98% 0.018 90);
+  --paper-ink: oklch(20% 0.025 280);
+  --grid-dot: oklch(20% 0.02 280 / 0.10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* Inputs reset */
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
+
+/* React Flow theming overrides */
+.react-flow {
+  background: var(--bg);
+}
+.react-flow__background {
+  background-color: var(--bg);
+}
+.react-flow__edge-path {
+  stroke: var(--border-strong);
+  stroke-width: 1.25;
+}
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:focus .react-flow__edge-path,
+.react-flow__edge:focus-visible .react-flow__edge-path {
+  stroke: var(--accent);
+}
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 0 4px transparent;
+  transition: box-shadow 180ms var(--ease-out), background 180ms var(--ease-out);
+}
+.react-flow__handle:hover {
+  background: var(--accent);
+  box-shadow: 0 0 0 6px var(--accent-glow);
+}
+.react-flow__handle:active {
+  background: var(--accent);
+}
+.react-flow__handle.connectingto {
+  background: var(--accent);
+}
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__controls {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+.react-flow__controls-button {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+}
+.react-flow__controls-button:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.react-flow__controls-button svg {
+  fill: currentColor;
+  max-width: 14px;
+  max-height: 14px;
+}
+.react-flow__minimap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* Utility for dashed motif */
+@utility dashed-border {
+  border: 1px dashed var(--border-strong);
+}
+@utility dashed-accent {
+  border: 1px dashed var(--accent);
+}
+
+/* Subtle grain on the canvas to give the dark surface texture */
+.canvas-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: 0 0;
+  mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
+  z-index: 0;
+}
+
+/* Slight glow under primary CTA */
+.btn-glow {
+  box-shadow: 0 6px 24px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Animations */
+@keyframes fade-up {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@keyframes dash-flow {
+  to { stroke-dashoffset: -16; }
+}
+
+/* Origin-aware popover/dropdown entry — never start from scale(0).
+   Nothing in the real world appears from nothing. */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Slide-in panel from the right (Inspector) */
+@keyframes slide-in-right {
+  0% { opacity: 0; transform: translateX(16px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-up { animation: fade-up 200ms var(--ease-out) both; }
+.animate-fade-in { animation: fade-in 200ms var(--ease-out) both; }
+.animate-pop-in {
+  transform-origin: var(--pop-origin, top center);
+  animation: pop-in 180ms var(--ease-out) both;
+}
+.animate-slide-in-right { animation: slide-in-right 200ms var(--ease-out) both; }
+.animate-pulse-soft { animation: pulse-soft 2.4s ease-in-out infinite; }
+
+/* Honor reduced motion: keep fades, drop motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-pop-in,
+  .animate-slide-in-right {
+    animation: fade-in 160ms var(--ease-out) both;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Print: only the preview surface remains */
+@media print {
+  body * { visibility: hidden; }
+  .print-surface, .print-surface * { visibility: visible; }
+  .print-surface {
+    position: absolute;
+    inset: 0;
+    background: white;
+  }
+}

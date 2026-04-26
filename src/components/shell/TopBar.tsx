@@ -44,13 +44,9 @@ export function TopBar({ resumeId }: { resumeId: string }) {
   if (!resume) return null
 
   return (
-    <header className="shrink-0 h-[60px] flex items-center gap-3 px-4 border-b border-[var(--border)] bg-[var(--bg-elevated)] z-20">
-      <div className="flex items-center gap-3 pr-3 mr-1 border-r border-[var(--border)] h-full">
-        <Brand size="sm" />
-      </div>
-
+    <header className="shrink-0 h-[48px] flex items-center gap-2 px-3 border-b border-[var(--border)] bg-[var(--bg-elevated)] z-20">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
+        <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
           Editing
         </span>
         {renaming ? (
@@ -65,31 +61,31 @@ export function TopBar({ resumeId }: { resumeId: string }) {
               if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
               if (e.key === 'Escape') setRenaming(false)
             }}
-            className="font-display text-[20px] leading-none tracking-tight bg-transparent min-w-[140px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            className="font-display text-[16px] leading-none tracking-tight bg-transparent min-w-[120px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           />
         ) : (
           <button
             type="button"
             onClick={() => setRenaming(true)}
-            className="group inline-flex items-center gap-1.5 font-display text-[20px] leading-none tracking-tight text-[var(--text)] hover:text-[var(--accent-hi)] transition-colors duration-200"
+            className="group inline-flex items-center gap-1.5 font-display text-[16px] leading-none tracking-tight text-[var(--text)] hover:text-[var(--accent-hi)] transition-colors duration-200"
           >
-            <span className="truncate max-w-[280px]">{resume.name}</span>
+            <span className="truncate max-w-[220px]">{resume.name}</span>
             <Pencil
-              size={11}
+              size={10}
               className="text-[var(--text-faint)] opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
             />
           </button>
         )}
       </div>
 
-      <div className="flex items-center gap-2 ml-2">
+      <div className="flex items-center gap-1.5 ml-1.5">
         <div ref={errorsRef} className="relative">
           <Button
             size="sm"
             variant={errors.length ? 'danger' : 'subtle'}
-            icon={errors.length ? <AlertTriangle size={12} /> : <Sparkles size={12} />}
+            icon={errors.length ? <AlertTriangle size={11} /> : <Sparkles size={11} />}
             onClick={() => setErrorsOpen((o) => !o)}
-            className="min-w-[88px]"
+            className="h-8 px-2.5 min-w-[76px]"
           >
             {errors.length ? 'Needs fixes' : 'Ready'}
             {errors.length ? (
@@ -100,7 +96,7 @@ export function TopBar({ resumeId }: { resumeId: string }) {
           </Button>
           {errorsOpen ? (
             <div
-              className="absolute z-50 top-[calc(100%+6px)] left-0 w-[320px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-2xl shadow-black/40 animate-pop-in"
+              className="absolute z-50 top-[calc(100%+4px)] left-0 w-[320px] rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-2xl shadow-black/40 animate-pop-in"
               style={{ '--pop-origin': 'top left' } as React.CSSProperties}
             >
               <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-faint)] mb-2">
@@ -127,14 +123,9 @@ export function TopBar({ resumeId }: { resumeId: string }) {
             </div>
           ) : null}
         </div>
-        <Tooltip label="Import (coming soon)">
-          <Button size="sm" variant="subtle" icon={<Inbox size={12} />} disabled>
-            Import
-          </Button>
-        </Tooltip>
       </div>
 
-      <div className="ml-auto flex items-center gap-2.5">
+      <div className="ml-auto flex items-center gap-2">
         <SegmentedControl
           value={view}
           onChange={setView}
@@ -144,20 +135,8 @@ export function TopBar({ resumeId }: { resumeId: string }) {
             { value: 'preview', label: 'Preview', icon: <Eye size={12} /> },
           ]}
         />
-
-        <Select
-          value={resume.templateId}
-          onChange={(t) => setTemplate(resumeId, t)}
-          triggerIcon={<Layout size={14} />}
-          options={[
-            { value: 'classic', label: 'Classic', hint: 'Default' },
-            { value: 'modern', label: 'Modern', hint: 'Soon', disabled: true },
-            { value: 'compact', label: 'Compact', hint: 'Soon', disabled: true },
-          ]}
-        />
-
         <Tooltip label="Download (PDF in next phase)">
-          <Button variant="primary" size="md" icon={<Download size={14} />} disabled>
+          <Button variant="primary" size="md" icon={<Download size={12} />} className="h-9 px-3" disabled>
             Download
           </Button>
         </Tooltip>

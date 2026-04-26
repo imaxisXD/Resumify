@@ -320,6 +320,65 @@ button { cursor: pointer; }
   50% { opacity: 1; }
 }
 
+/* Color picker — staged entry/exit (interface-craft choreography).
+   Stage 1: container pops in (scale + fade)
+   Stage 2: rim spins into place (slight rotation settle)
+   Stage 3: petals bloom outward, ring-staggered
+   Stage 4: dock rises up from below */
+@keyframes picker-pop-in {
+  0% { opacity: 0; transform: scale(0.84); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes picker-pop-out {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.88); }
+}
+@keyframes picker-rim-in {
+  0% { opacity: 0; transform: rotate(28deg) scale(0.94); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: rotate(0) scale(1); }
+}
+@keyframes picker-rim-out {
+  0% { opacity: 1; transform: rotate(0) scale(1); }
+  100% { opacity: 0; transform: rotate(-14deg) scale(0.96); }
+}
+@keyframes picker-petal-in {
+  0% { opacity: 0; transform: scale(0.42); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes picker-petal-out {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.6); }
+}
+@keyframes picker-dock-in {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes picker-dock-out {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(12px); }
+}
+
+/* Reset feedback — icon spins, center petal pulses with a halo flash. */
+@keyframes picker-reset-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+@keyframes picker-reset-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px -4px rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.35);
+  }
+  35% {
+    transform: scale(1.22);
+    box-shadow: 0 0 0 6px rgba(255,255,255,0.45), 0 0 36px 12px rgba(255,255,255,0.4), inset 0 0 0 1px rgba(255,255,255,0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px -4px rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.35);
+  }
+}
+
 .animate-fade-up { animation: fade-up 200ms var(--ease-out) both; }
 .animate-fade-in { animation: fade-in 200ms var(--ease-out) both; }
 .animate-pop-in {

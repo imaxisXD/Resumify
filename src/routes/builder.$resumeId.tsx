@@ -21,7 +21,7 @@ function Builder() {
 
   if (!hydrated) {
     return (
-      <div className="flex-1 grid place-items-center text-[var(--text-muted)] text-[13px] font-mono uppercase tracking-[0.2em] animate-pulse-soft">
+      <div className="flex-1 grid place-items-center text-(--text-muted) text-[13px] font-mono uppercase tracking-[0.2em] animate-pulse-soft">
         Loading your resumes...
       </div>
     )
@@ -31,13 +31,13 @@ function Builder() {
     return (
       <div className="flex-1 grid place-items-center px-10">
         <div className="max-w-md text-center animate-fade-up">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-[var(--text-faint)]">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-(--text-faint)">
             Resume not found
           </div>
           <h2 className="mt-3 font-display text-[36px] leading-tight tracking-tight">
             We could not find this resume.
           </h2>
-          <p className="mt-2 text-[14px] text-[var(--text-muted)] leading-relaxed">
+          <p className="mt-2 text-[14px] text-(--text-muted) leading-relaxed">
             It may have been deleted, or it may be saved on another device.
           </p>
           <div className="mt-5 flex justify-center gap-2">
@@ -74,7 +74,7 @@ function Builder() {
         >
           <div
             className={cn(
-              'min-h-0 min-w-0 relative overflow-hidden border-r border-[var(--border)] transition-opacity duration-200 ease-out',
+              'min-h-0 min-w-0 relative overflow-hidden border-r border-(--border) transition-opacity duration-200 ease-out',
               view === 'preview' && 'pointer-events-none opacity-0',
             )}
           >
@@ -82,7 +82,7 @@ function Builder() {
           </div>
           <div
             className={cn(
-              'min-h-0 min-w-0 relative overflow-hidden bg-[var(--bg)] transition-opacity duration-200 ease-out',
+              'min-h-0 min-w-0 relative overflow-hidden bg-(--bg) transition-opacity duration-200 ease-out',
               view === 'builder' && 'pointer-events-none opacity-0',
             )}
           >
@@ -91,7 +91,7 @@ function Builder() {
         </div>
         <Inspector resumeId={resumeId} />
       </div>
-      <ColorPickerDock />
+      <ColorPickerDock size="sm" />
     </div>
   )
 }

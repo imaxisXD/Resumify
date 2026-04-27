@@ -9,7 +9,7 @@
     "dev": "vite dev --port 3000",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm test",
-    "build": "vite build",
+    "build": "vite build && node scripts/prepare-pages.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "deploy": "npm run deploy:pages",

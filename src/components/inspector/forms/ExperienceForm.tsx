@@ -3,19 +3,19 @@ import { nanoid } from 'nanoid'
 import { Button } from '../../ui/Button'
 import { FieldLabel, Input, TextArea } from '../../ui/Input'
 import { SortableList } from '../SortableList'
-import type { ExperienceItem, ResumeNode } from '../../../stores/types'
-import { updateList, useNodeListField } from '../useNodeListField'
+import type { ExperienceItem, ResumeSection } from '../../../stores/types'
+import { updateList, useSectionListField } from '../useSectionListField'
 
 export function ExperienceForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'experience'>
+  section: ResumeSection<'experience'>
 }) {
-  const roles = useNodeListField<'experience', ExperienceItem>({
+  const roles = useSectionListField<'experience', ExperienceItem>({
     resumeId,
-    node,
+    section,
     field: 'items',
     makeItem: makeEmptyExperienceItem,
   })

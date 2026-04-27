@@ -1,5 +1,5 @@
 import { Link, useLocation, useRouter } from '@tanstack/react-router'
-import { Files, Github, PanelLeft, Sparkles, FolderClosed } from 'lucide-react'
+import { Files, PanelLeft, Sparkles, FolderClosed, ShieldCheck } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { Brand } from './Brand'
@@ -51,7 +51,7 @@ export function Sidebar() {
             <SidebarLink key={item.to} item={item} collapsed={collapsed} pathname={pathname} />
           ))}
         </SidebarGroup>
-        <SidebarGroup label="Create" collapsed={collapsed}>
+        <SidebarGroup label="New" collapsed={collapsed}>
           <button
             type="button"
             onClick={onCreate}
@@ -73,31 +73,22 @@ export function Sidebar() {
       </nav>
 
       <div className={cn('p-3 flex flex-col gap-3', collapsed && 'items-center')}>
-        <a
-          href="https://github.com"
-          target="_blank"
-          rel="noreferrer"
+        <div
           className={cn(
-            'group inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-2)] transition-colors text-[12px] text-[var(--text-muted)] hover:text-[var(--text)]',
+            'inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[12px] text-[var(--text-muted)]',
             collapsed ? 'size-10 justify-center' : 'h-9 px-3',
           )}
         >
-          <Github size={14} />
-          {collapsed ? null : 'Proudly Open Source'}
-        </a>
+          <ShieldCheck size={14} />
+          {collapsed ? null : 'ATS-safe export'}
+        </div>
 
         {collapsed ? null : (
           <div className="rounded-xl border border-dashed border-[var(--border-strong)] p-3 text-[12px]">
-            <div className="font-display text-[18px] leading-none text-[var(--text)]">Login</div>
+            <div className="font-display text-[18px] leading-none text-[var(--text)]">Local drafts</div>
             <p className="mt-1.5 text-[var(--text-faint)] leading-snug">
-              Login to sync your resumes across devices.
+              Your resumes stay in this browser. Export when the layout is ready.
             </p>
-            <button
-              type="button"
-              className="mt-3 w-full h-8 rounded-md text-[12px] font-medium bg-[var(--accent)] hover:bg-[var(--accent-hi)] text-white transition-[background,color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] active:duration-100 btn-glow"
-            >
-              Login
-            </button>
           </div>
         )}
 

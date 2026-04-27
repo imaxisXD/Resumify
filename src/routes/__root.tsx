@@ -25,7 +25,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         name: 'description',
         content:
-          'Build your resume on a canvas. Drag sections, link them in order, see the preview live, and export to PDF.',
+          'Build your resume from simple sections, see the preview live, and export to PDF.',
       },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],
@@ -41,7 +41,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('resumify.v1');if(s){var t=JSON.parse(s).state.theme;if(t){document.documentElement.dataset.theme=t;}}}catch(_){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem('resumify.v2')||localStorage.getItem('resumify.v1');if(s){var t=JSON.parse(s).state.theme;if(t){document.documentElement.dataset.theme=t;}}}catch(_){}})();`,
           }}
         />
       </head>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createResumeNode, getSectionList, makeNewResume, PALETTE_ORDER } from './resumeSections'
-import type { NodeKind } from './types'
+import { createResumeSection, getSectionList, makeNewResume, PALETTE_ORDER } from './resumeSections'
+import type { SectionKind } from './types'
 
 describe('resume sections', () => {
   it('lists every section with labels and hints', () => {
@@ -21,22 +21,21 @@ describe('resume sections', () => {
     expect(PALETTE_ORDER).not.toContain('personal')
   })
 
-  it.each<NodeKind>(['personal', 'summary', 'experience', 'education', 'skills', 'projects', 'custom'])(
-    'makes a %s node with matching data',
+  it.each<SectionKind>(['personal', 'summary', 'experience', 'education', 'skills', 'projects', 'custom'])(
+    'makes a %s section with matching data',
     (kind) => {
-      const node = createResumeNode(kind, { x: 1, y: 2 })
-      expect(node.type).toBe(kind)
-      expect(node.data.kind).toBe(kind)
-      expect(node.position).toEqual({ x: 1, y: 2 })
-      expect(node.deletable).toBe(kind !== 'personal')
+      const section = createResumeSection(kind)
+      expect(section.type).toBe(kind)
+      expect(section.data.kind).toBe(kind)
+      expect(section.enabled).toBe(true)
+      expect(Boolean(section.locked)).toBe(kind === 'personal')
     },
   )
 
-  it('makes a new resume with a personal node', () => {
+  it('makes a new resume with ordered sections', () => {
     const resume = makeNewResume('Test resume')
     expect(resume.name).toBe('Test resume')
-    expect(resume.nodes).toHaveLength(1)
-    expect(resume.nodes[0].type).toBe('personal')
+    expect(resume.sections.length).toBeGreaterThan(1)
+    expect(resume.sections[0].type).toBe('personal')
   })
 })
-

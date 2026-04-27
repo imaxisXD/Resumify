@@ -2,20 +2,20 @@ import { Plus } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { Button } from '../../ui/Button'
 import { FieldLabel, Input } from '../../ui/Input'
-import type { ResumeNode, SkillGroup } from '../../../stores/types'
+import type { ResumeSection, SkillGroup } from '../../../stores/types'
 import { TagsInput } from '../TagsInput'
-import { useNodeListField } from '../useNodeListField'
+import { useSectionListField } from '../useSectionListField'
 
 export function SkillsForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'skills'>
+  section: ResumeSection<'skills'>
 }) {
-  const skillGroups = useNodeListField<'skills', SkillGroup>({
+  const skillGroups = useSectionListField<'skills', SkillGroup>({
     resumeId,
-    node,
+    section,
     field: 'groups',
     makeItem: makeEmptySkillGroup,
   })

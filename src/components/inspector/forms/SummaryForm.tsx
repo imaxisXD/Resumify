@@ -1,22 +1,22 @@
 import { useResumeStore } from '../../../stores/resumeStore'
 import { FieldLabel, TextArea } from '../../ui/Input'
-import type { ResumeNode } from '../../../stores/types'
+import type { ResumeSection } from '../../../stores/types'
 
 export function SummaryForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'summary'>
+  section: ResumeSection<'summary'>
 }) {
-  const update = useResumeStore((s) => s.updateNodeData)
+  const update = useResumeStore((s) => s.updateSectionData)
   return (
     <div className="flex flex-col gap-1.5">
-      <FieldLabel hint={`${node.data.text.length} chars`}>Summary</FieldLabel>
+      <FieldLabel hint={`${section.data.text.length} chars`}>Summary</FieldLabel>
       <TextArea
         rows={8}
-        value={node.data.text}
-        onChange={(e) => update<'summary'>(resumeId, node.id, { text: e.target.value })}
+        value={section.data.text}
+        onChange={(e) => update<'summary'>(resumeId, section.id, { text: e.target.value })}
         placeholder="One short paragraph that frames who you are."
       />
       <p className="text-[11px] text-[var(--text-faint)] mt-1">

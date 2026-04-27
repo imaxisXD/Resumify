@@ -2,19 +2,19 @@ import { Plus } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { Button } from '../../ui/Button'
 import { FieldLabel, Input, TextArea } from '../../ui/Input'
-import type { EducationItem, ResumeNode } from '../../../stores/types'
-import { useNodeListField } from '../useNodeListField'
+import type { EducationItem, ResumeSection } from '../../../stores/types'
+import { useSectionListField } from '../useSectionListField'
 
 export function EducationForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'education'>
+  section: ResumeSection<'education'>
 }) {
-  const schools = useNodeListField<'education', EducationItem>({
+  const schools = useSectionListField<'education', EducationItem>({
     resumeId,
-    node,
+    section,
     field: 'items',
     makeItem: makeEmptyEducationItem,
   })

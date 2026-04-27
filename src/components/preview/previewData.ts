@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
-import { useResumeStore } from '../../stores/resumeStore'
-import { readResumeGraph } from '../../stores/resumeGraph'
-import { NODE_LABEL } from '../../stores/resumeSections'
+import { defaultResumeStyle, useResumeStore } from '../../stores/resumeStore'
+import { SECTION_LABEL } from '../../stores/resumeSections'
 import type {
   CustomData,
   EducationData,
@@ -9,8 +8,10 @@ import type {
   PersonalData,
   ProjectsData,
   Resume,
+  ResumeStyle,
   SkillsData,
   SummaryData,
+  TemplateId,
 } from '../../stores/types'
 
 export type PreviewSection =
@@ -23,24 +24,28 @@ export type PreviewSection =
 
 export type PreviewResume = {
   id: string
+  templateId: TemplateId
+  style: ResumeStyle
   personal: { id: string; data: PersonalData } | null
   sections: Array<PreviewSection>
 }
 
 export function buildPreviewResume(resume: Resume): PreviewResume {
-  const graph = readResumeGraph(resume)
-  const personalNode = graph.orderedNodes.find((node) => node.type === 'personal')
-  const sections = graph.orderedNodes.flatMap((node): Array<PreviewSection> => {
-    if (node.type === 'personal') return []
+  const resumeSections = resume.sections ?? []
+  const personalSection = resumeSections.find((section) => section.type === 'personal')
+  const sections = resumeSections.flatMap((section): Array<PreviewSection> => {
+    if (section.type === 'personal' || !section.enabled) return []
 
-    const section = toPreviewSection(node)
-    return section && shouldShowSection(section) ? [section] : []
+    const previewSection = toPreviewSection(section)
+    return previewSection && shouldShowSection(previewSection) ? [previewSection] : []
   })
 
   return {
     id: resume.id,
-    personal: personalNode
-      ? { id: personalNode.id, data: personalNode.data as PersonalData }
+    templateId: resume.templateId ?? 'classic',
+    style: { ...defaultResumeStyle, ...resume.style },
+    personal: personalSection
+      ? { id: personalSection.id, data: personalSection.data as PersonalData }
       : null,
     sections,
   }
@@ -51,36 +56,36 @@ export function usePreviewResume(resumeId: string): PreviewResume | null {
   return useMemo(() => (resume ? buildPreviewResume(resume) : null), [resume])
 }
 
-function toPreviewSection(node: Resume['nodes'][number]): PreviewSection | null {
-  switch (node.type) {
+function toPreviewSection(section: Resume['sections'][number]): PreviewSection | null {
+  switch (section.type) {
     case 'summary':
-      return { id: node.id, kind: 'summary', title: NODE_LABEL.summary, data: node.data as SummaryData }
+      return { id: section.id, kind: 'summary', title: SECTION_LABEL.summary, data: section.data as SummaryData }
     case 'experience':
       return {
-        id: node.id,
+        id: section.id,
         kind: 'experience',
-        title: NODE_LABEL.experience,
-        data: node.data as ExperienceData,
+        title: SECTION_LABEL.experience,
+        data: section.data as ExperienceData,
       }
     case 'education':
       return {
-        id: node.id,
+        id: section.id,
         kind: 'education',
-        title: NODE_LABEL.education,
-        data: node.data as EducationData,
+        title: SECTION_LABEL.education,
+        data: section.data as EducationData,
       }
     case 'skills':
-      return { id: node.id, kind: 'skills', title: NODE_LABEL.skills, data: node.data as SkillsData }
+      return { id: section.id, kind: 'skills', title: SECTION_LABEL.skills, data: section.data as SkillsData }
     case 'projects':
       return {
-        id: node.id,
+        id: section.id,
         kind: 'projects',
-        title: NODE_LABEL.projects,
-        data: node.data as ProjectsData,
+        title: SECTION_LABEL.projects,
+        data: section.data as ProjectsData,
       }
     case 'custom': {
-      const data = node.data as CustomData
-      return { id: node.id, kind: 'custom', title: data.title || NODE_LABEL.custom, data }
+      const data = section.data as CustomData
+      return { id: section.id, kind: 'custom', title: data.title || SECTION_LABEL.custom, data }
     }
     default:
       return null

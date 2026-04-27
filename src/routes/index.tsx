@@ -1,12 +1,19 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
-import { ArrowUpRight, Copy, FilePlus2, MoreHorizontal, Trash2 } from 'lucide-react'
-import { useResumeStore } from '../stores/resumeStore'
+import { ArrowUpRight, Copy, FilePlus2, Trash2 } from 'lucide-react'
+import { selectErrors, useResumeStore } from '../stores/resumeStore'
 import { Button } from '../components/ui/Button'
 import { DashedDropZone } from '../components/ui/DashedDropZone'
 import { Badge } from '../components/ui/Badge'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 
 export const Route = createFileRoute('/')({ component: Home })
+
+const templateNames: Record<string, string> = {
+  professional: 'Pro ATS',
+  classic: 'Classic',
+  modern: 'Modern',
+  compact: 'Compact',
+}
 
 function Home() {
   const router = useRouter()
@@ -40,8 +47,7 @@ function Home() {
               <span className="text-[var(--text-muted)] italic"> built from sections.</span>
             </h1>
             <p className="mt-3 max-w-[58ch] text-[15px] text-[var(--text-muted)] leading-relaxed text-pretty">
-              Each resume lives on a canvas. Drag in a section, link it to the next, and watch the
-              document render itself.
+              Build from simple sections, reorder them, preview live, and export a clean PDF.
             </p>
           </div>
           <Button variant="primary" size="lg" icon={<FilePlus2 size={16} />} onClick={onCreate}>
@@ -75,8 +81,8 @@ function Home() {
                 id={r.id}
                 name={r.name}
                 templateId={r.templateId}
-                nodes={r.nodes.length}
-                edges={r.edges.length}
+                issueCount={selectErrors(r).length}
+                sections={r.sections.length}
                 updatedAt={r.updatedAt}
                 onDelete={() => deleteResume(r.id)}
                 onDuplicate={() => {
@@ -96,8 +102,8 @@ function ResumeCard({
   id,
   name,
   templateId,
-  nodes,
-  edges,
+  issueCount,
+  sections,
   updatedAt,
   index,
   onDelete,
@@ -106,8 +112,8 @@ function ResumeCard({
   id: string
   name: string
   templateId: string
-  nodes: number
-  edges: number
+  issueCount: number
+  sections: number
   updatedAt: number
   index: number
   onDelete: () => void
@@ -127,12 +133,14 @@ function ResumeCard({
             {name}
           </h3>
         </div>
-        <Badge tone="mono">{templateId}</Badge>
+        <Badge tone={issueCount === 0 ? 'accent' : 'mono'}>
+          {issueCount === 0 ? 'Ready' : `${issueCount} fixes`}
+        </Badge>
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-2">
-        <Stat label="Sections" value={nodes} />
-        <Stat label="Links" value={edges} />
+        <Stat label="Sections" value={sections} />
+        <Stat label="Layout" value={templateNames[templateId] ?? templateId} />
         <Stat label="Edited" value={timeSince(updatedAt)} />
       </div>
 
@@ -142,7 +150,7 @@ function ResumeCard({
           params={{ resumeId: id }}
           className="group/link inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--accent-hi)] hover:text-[var(--accent)] transition-colors duration-200"
         >
-          Open canvas
+          Open editor
           <ArrowUpRight
             size={14}
             className="transition-transform duration-200 ease-out group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
@@ -173,13 +181,6 @@ function ResumeCard({
               <Trash2 size={14} />
             </button>
           </ConfirmDialog>
-          <button
-            type="button"
-            className="size-10 rounded-lg text-[var(--text-faint)] hover:text-[var(--text-muted)] hover:bg-[var(--surface-2)] transition-[background,color,transform] ease-out active:scale-[0.96] active:duration-100 duration-200 inline-flex items-center justify-center"
-            aria-label="More"
-          >
-            <MoreHorizontal size={14} />
-          </button>
         </div>
       </div>
     </div>

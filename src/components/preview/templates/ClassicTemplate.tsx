@@ -1,12 +1,37 @@
 import type { PersonalData } from '../../../stores/types'
 import type { PreviewResume, PreviewSection } from '../previewData'
+import { cn } from '../../../lib/cn'
 
 export function ClassicTemplate({ preview }: { preview: PreviewResume }) {
+  const style = preview.style
+  const templateClass = {
+    classic: 'resume-classic',
+    modern: 'resume-modern',
+    compact: 'resume-compact',
+    professional: 'resume-professional',
+  }[preview.templateId]
+  const fontClass = {
+    serif: 'font-display',
+    sans: 'font-sans',
+    mono: 'font-mono',
+  }[style.font]
+  const pageClass = style.pageSize === 'letter' ? 'resume-page-letter' : 'resume-page-a4'
+  const spacingClass = `resume-spacing-${style.spacing}`
+
   return (
-    <article className="min-h-[880px] w-full bg-[var(--paper)] text-[var(--paper-ink)] font-sans">
-      <div className="px-12 py-12">
+    <article
+      className={cn(
+        'resume-template w-full bg-[var(--paper)] text-[var(--paper-ink)]',
+        pageClass,
+        templateClass,
+        fontClass,
+        spacingClass,
+      )}
+      style={{ '--resume-accent': style.accentColor } as React.CSSProperties}
+    >
+      <div className="resume-page-pad">
         {preview.personal ? <PersonalHeader data={preview.personal.data} /> : null}
-        <div className="mt-8 flex flex-col gap-7">
+        <div className="resume-sections flex flex-col">
           {preview.sections.map((section) => (
             <SectionFor key={section.id} section={section} />
           ))}
@@ -19,14 +44,14 @@ export function ClassicTemplate({ preview }: { preview: PreviewResume }) {
 function PersonalHeader({ data }: { data: PersonalData }) {
   const links = [data.website, ...data.links.map((l) => `${l.label}: ${l.url}`)].filter(Boolean)
   return (
-    <header className="border-b border-[var(--paper-ink)]/15 pb-5">
-      <h1 className="font-display text-[44px] leading-[0.95] tracking-tight">
+    <header className="resume-header">
+      <h1 className="resume-name">
         {data.fullName || 'Your name'}
       </h1>
       {data.title ? (
-        <div className="mt-1 text-[15px] text-[var(--paper-ink)]/60 italic font-display">{data.title}</div>
+        <div className="resume-title">{data.title}</div>
       ) : null}
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[var(--paper-ink)]/70 font-mono">
+      <div className="resume-contact flex flex-wrap items-center gap-x-4 gap-y-1">
         {data.email ? <span>{data.email}</span> : null}
         {data.phone ? <span className="opacity-50">·</span> : null}
         {data.phone ? <span>{data.phone}</span> : null}
@@ -34,7 +59,7 @@ function PersonalHeader({ data }: { data: PersonalData }) {
         {data.location ? <span>{data.location}</span> : null}
       </div>
       {links.length ? (
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[var(--paper-ink)]/60 font-mono">
+        <div className="resume-links flex flex-wrap items-center gap-x-3 gap-y-1">
           {links.map((l) => (
             <span key={l}>{l}</span>
           ))}
@@ -47,9 +72,9 @@ function PersonalHeader({ data }: { data: PersonalData }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <div className="flex items-baseline gap-3 mb-2">
-        <h2 className="font-display text-[20px] leading-none tracking-tight">{title}</h2>
-        <span className="flex-1 h-px bg-[var(--paper-ink)]/15" />
+      <div className="resume-section-head flex items-baseline gap-3">
+        <h2>{title}</h2>
+        <span className="flex-1 h-px" />
       </div>
       {children}
     </section>
@@ -62,7 +87,7 @@ function SectionFor({ section }: { section: PreviewSection }) {
       const d = section.data
       return (
         <Section title="Summary">
-          <p className="text-[13px] leading-relaxed text-[var(--paper-ink)]/80">{d.text}</p>
+          <p className="resume-copy">{d.text}</p>
         </Section>
       )
     }
@@ -70,27 +95,27 @@ function SectionFor({ section }: { section: PreviewSection }) {
       const d = section.data
       return (
         <Section title="Experience">
-          <div className="flex flex-col gap-4">
+          <div className="resume-items flex flex-col">
             {d.items.map((it) => (
               <div key={it.id}>
                 <div className="flex items-baseline justify-between gap-3">
                   <div>
-                    <div className="text-[13.5px] font-semibold text-[var(--paper-ink)] tracking-tight">
+                    <div className="resume-main">
                       {it.role || 'Role'}
                       {it.company ? (
                         <span className="font-normal text-[var(--paper-ink)]/70"> · {it.company}</span>
                       ) : null}
                     </div>
                     {it.location ? (
-                      <div className="text-[12px] text-[var(--paper-ink)]/55">{it.location}</div>
+                      <div className="resume-muted">{it.location}</div>
                     ) : null}
                   </div>
-                  <div className="text-[11.5px] font-mono uppercase tracking-wider text-[var(--paper-ink)]/55 whitespace-nowrap">
+                  <div className="resume-date">
                     {it.start || '—'} → {it.current ? 'present' : it.end || '—'}
                   </div>
                 </div>
                 {it.bullets.length ? (
-                  <ul className="mt-1.5 ml-4 list-[square] text-[12.5px] text-[var(--paper-ink)]/80 leading-relaxed marker:text-[var(--paper-ink)]/40">
+                  <ul className="resume-list">
                     {it.bullets.map((b) => (
                       <li key={b.id} className="pl-1">
                         {b.text}
@@ -108,19 +133,19 @@ function SectionFor({ section }: { section: PreviewSection }) {
       const d = section.data
       return (
         <Section title="Education">
-          <div className="flex flex-col gap-3">
+          <div className="resume-items flex flex-col">
             {d.items.map((it) => (
               <div key={it.id} className="flex items-baseline justify-between gap-3">
                 <div>
-                  <div className="text-[13.5px] font-semibold text-[var(--paper-ink)] tracking-tight">
+                  <div className="resume-main">
                     {it.school || 'School'}
                   </div>
-                  <div className="text-[12px] text-[var(--paper-ink)]/65">
+                  <div className="resume-copy">
                     {[it.degree, it.field].filter(Boolean).join(' · ')}
                     {it.notes ? <span className="text-[var(--paper-ink)]/45"> — {it.notes}</span> : null}
                   </div>
                 </div>
-                <div className="text-[11.5px] font-mono uppercase tracking-wider text-[var(--paper-ink)]/55 whitespace-nowrap">
+                <div className="resume-date">
                   {it.start || '—'} → {it.end || '—'}
                 </div>
               </div>
@@ -133,9 +158,9 @@ function SectionFor({ section }: { section: PreviewSection }) {
       const d = section.data
       return (
         <Section title="Skills">
-          <div className="flex flex-col gap-1.5">
+          <div className="resume-items flex flex-col">
             {d.groups.map((g) => (
-              <div key={g.id} className="text-[12.5px] text-[var(--paper-ink)]/85 leading-relaxed">
+              <div key={g.id} className="resume-copy">
                 <span className="font-semibold text-[var(--paper-ink)]">{g.label}: </span>
                 <span className="text-[var(--paper-ink)]/75">{g.skills.join(' · ')}</span>
               </div>
@@ -148,23 +173,33 @@ function SectionFor({ section }: { section: PreviewSection }) {
       const d = section.data
       return (
         <Section title="Projects">
-          <div className="flex flex-col gap-3">
+          <div className="resume-items flex flex-col">
             {d.items.map((it) => (
               <div key={it.id}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <div className="text-[13.5px] font-semibold text-[var(--paper-ink)] tracking-tight">
+                  <div className="resume-main">
                     {it.name || 'Project'}
                   </div>
                   {it.url ? (
-                    <div className="text-[11.5px] font-mono text-[var(--paper-ink)]/55">{it.url}</div>
+                    <div className="resume-date normal-case">{it.url}</div>
                   ) : null}
                 </div>
                 {it.description ? (
-                  <p className="text-[12.5px] text-[var(--paper-ink)]/80 leading-relaxed">{it.description}</p>
+                  <p className="resume-copy">{it.description}</p>
+                ) : null}
+                {it.bullets?.length ? (
+                  <ul className="resume-list">
+                    {it.bullets.map((bullet) => (
+                      <li key={bullet.id} className="pl-1">
+                        {bullet.text}
+                      </li>
+                    ))}
+                  </ul>
                 ) : null}
                 {it.tech.length ? (
-                  <div className="mt-1 text-[11.5px] font-mono uppercase tracking-wide text-[var(--paper-ink)]/55">
-                    {it.tech.join(' · ')}
+                  <div className="resume-date mt-1">
+                    <span className="font-semibold text-[var(--paper-ink)] normal-case">Tech Stack: </span>
+                    <span className="normal-case">{it.tech.join(', ')}</span>
                   </div>
                 ) : null}
               </div>
@@ -177,21 +212,21 @@ function SectionFor({ section }: { section: PreviewSection }) {
       const d = section.data
       return (
         <Section title={d.title || 'Custom'}>
-          <div className="flex flex-col gap-3">
+          <div className="resume-items flex flex-col">
             {d.items.map((it) => (
               <div key={it.id}>
                 <div className="flex items-baseline justify-between gap-3">
-                  <div className="text-[13.5px] font-semibold text-[var(--paper-ink)] tracking-tight">
+                  <div className="resume-main">
                     {it.title}
                   </div>
                   {it.subtitle ? (
-                    <div className="text-[11.5px] font-mono uppercase tracking-wider text-[var(--paper-ink)]/55">
+                    <div className="resume-date">
                       {it.subtitle}
                     </div>
                   ) : null}
                 </div>
                 {it.body ? (
-                  <p className="text-[12.5px] text-[var(--paper-ink)]/80 leading-relaxed">{it.body}</p>
+                  <p className="resume-copy">{it.body}</p>
                 ) : null}
               </div>
             ))}

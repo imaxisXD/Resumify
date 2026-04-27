@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { commitTagValue } from './TagsInput'
-import { updateList } from './useNodeListField'
+import { updateList } from './useSectionListField'
 
 describe('list edits', () => {
   it('updates one item', () => {

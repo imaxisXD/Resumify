@@ -1,24 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { buildPreviewResume } from './previewData'
-import { createResumeNode } from '../../stores/resumeSections'
-import type { Resume } from '../../stores/types'
+import { createResumeSection } from '../../stores/resumeSections'
+import { DEFAULT_RESUME_STYLE, type Resume } from '../../stores/types'
 
 describe('preview data', () => {
-  it('builds clean preview data from the resume graph', () => {
-    const personal = createResumeNode('personal', { x: 0, y: 0 }, { id: 'personal' })
-    const summary = createResumeNode('summary', { x: 1, y: 0 }, { id: 'summary' })
-    const projects = createResumeNode('projects', { x: 2, y: 0 }, { id: 'projects' })
-    const loose = createResumeNode('skills', { x: 3, y: 0 }, { id: 'loose' })
+  it('builds clean preview data from ordered resume sections', () => {
+    const personal = createResumeSection('personal', { id: 'personal' })
+    const summary = createResumeSection('summary', { id: 'summary' })
+    const projects = createResumeSection('projects', { id: 'projects' })
+    const hidden = createResumeSection('skills', { id: 'hidden', enabled: false })
 
     const resume: Resume = {
       id: 'resume',
       name: 'Resume',
       templateId: 'classic',
-      nodes: [personal, summary, projects, loose],
-      edges: [
-        { id: 'one', source: 'personal', target: 'summary' },
-        { id: 'two', source: 'summary', target: 'projects' },
-      ],
+      style: DEFAULT_RESUME_STYLE,
+      sections: [personal, summary, projects, hidden],
       createdAt: 1,
       updatedAt: 1,
     }
@@ -28,4 +25,3 @@ describe('preview data', () => {
     expect(preview.sections.map((section) => section.kind)).toEqual(['summary', 'projects'])
   })
 })
-

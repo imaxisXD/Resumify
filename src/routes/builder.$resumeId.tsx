@@ -1,13 +1,11 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
-import { ResumeCanvas } from '../components/canvas/ResumeCanvas'
-import { Inspector } from '../components/inspector/Inspector'
+import { ResumeEditor } from '../components/editor/ResumeEditor'
 import { PreviewPane } from '../components/preview/PreviewPane'
 import { TopBar } from '../components/shell/TopBar'
 import { useResumeStore } from '../stores/resumeStore'
 import { cn } from '../lib/cn'
 import { Sparkles } from 'lucide-react'
 import { Button } from '../components/ui/Button'
-import { ColorPickerDock } from '../components/ui/ColorPickerDock'
 
 export const Route = createFileRoute('/builder/$resumeId')({ component: Builder })
 
@@ -78,7 +76,7 @@ function Builder() {
               view === 'preview' && 'pointer-events-none opacity-0',
             )}
           >
-            <ResumeCanvas resumeId={resumeId} />
+            <ResumeEditor resumeId={resumeId} />
           </div>
           <div
             className={cn(
@@ -89,9 +87,7 @@ function Builder() {
             <PreviewPane resumeId={resumeId} />
           </div>
         </div>
-        <Inspector resumeId={resumeId} />
       </div>
-      <ColorPickerDock size="sm" />
     </div>
   )
 }

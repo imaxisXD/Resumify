@@ -1,5 +1,3 @@
-import type { Edge, Node } from '@xyflow/react'
-
 export type Theme = 'dark' | 'light' | 'riso'
 
 export type PersonalData = {
@@ -60,6 +58,7 @@ export type ProjectItem = {
   name: string
   url: string
   description: string
+  bullets: Array<{ id: string; text: string }>
   tech: Array<string>
 }
 
@@ -79,7 +78,7 @@ export type CustomData = {
   items: Array<CustomItem>
 }
 
-export type NodeKind =
+export type SectionKind =
   | 'personal'
   | 'summary'
   | 'experience'
@@ -88,7 +87,7 @@ export type NodeKind =
   | 'projects'
   | 'custom'
 
-export type NodeDataMap = {
+export type SectionDataMap = {
   personal: PersonalData
   summary: SummaryData
   experience: ExperienceData
@@ -98,23 +97,83 @@ export type NodeDataMap = {
   custom: CustomData
 }
 
-// React Flow's Node generic constrains data to Record<string, unknown>.
-// Our concrete data shapes satisfy that at runtime; we cast at the boundary.
-export type ResumeNode<K extends NodeKind = NodeKind> = Node<
-  Record<string, unknown> & { kind: K },
-  K
-> & {
-  data: NodeDataMap[K] & { kind: K }
+export type ResumeSection<K extends SectionKind = SectionKind> = {
+  id: string
+  type: K
+  data: SectionDataMap[K] & { kind: K }
+  enabled: boolean
+  locked?: boolean
 }
 
-export type TemplateId = 'classic' | 'modern' | 'compact'
+export type TemplateId = 'classic' | 'modern' | 'compact' | 'professional'
+
+export type ResumeStyle = {
+  font: 'serif' | 'sans' | 'mono'
+  spacing: 'compact' | 'normal' | 'wide'
+  pageSize: 'a4' | 'letter'
+  accentColor: string
+}
+
+export const DEFAULT_RESUME_STYLE: ResumeStyle = {
+  font: 'sans',
+  spacing: 'compact',
+  pageSize: 'a4',
+  accentColor: '#0a84ff',
+}
 
 export type Resume = {
   id: string
   name: string
   templateId: TemplateId
-  nodes: Array<ResumeNode>
-  edges: Array<Edge>
+  style: ResumeStyle
+  sections: Array<ResumeSection>
   createdAt: number
   updatedAt: number
+}
+
+export type Profile = {
+  id: string
+  name: string
+  personal: PersonalData
+  education: EducationData
+  skills: SkillsData
+  experience: ExperienceData
+  createdAt: number
+  updatedAt: number
+}
+
+export type ResumeSnapshot = {
+  id: string
+  resumeId: string
+  label: string
+  resume: Resume
+  createdAt: number
+}
+
+export type JobMatch = {
+  id: string
+  resumeId: string
+  title: string
+  description: string
+  matchedKeywords: Array<string>
+  missingKeywords: Array<string>
+  score: number
+  createdAt: number
+}
+
+export type AiSettings = {
+  enabled: boolean
+  apiKey: string
+  model: string
+}
+
+export type ResumeBackup = {
+  version: 3
+  exportedAt: number
+  resumes: Record<string, Resume>
+  order: Array<string>
+  profileLibrary: Array<Profile>
+  resumeHistory: Record<string, Array<ResumeSnapshot>>
+  jobMatches: Record<string, Array<JobMatch>>
+  aiSettings: AiSettings
 }

@@ -1,14 +1,15 @@
 import { nanoid } from 'nanoid'
+import { DEFAULT_RESUME_STYLE } from './types'
 import type {
   CustomData,
   EducationData,
   ExperienceData,
-  NodeDataMap,
-  NodeKind,
+  SectionDataMap,
+  SectionKind,
   PersonalData,
   ProjectsData,
   Resume,
-  ResumeNode,
+  ResumeSection,
   SkillsData,
   SummaryData,
 } from './types'
@@ -16,14 +17,14 @@ import type {
 export type Point = { x: number; y: number }
 
 export type SectionInfo = {
-  kind: NodeKind
+  kind: SectionKind
   label: string
   hint: string
   canDelete: boolean
   canAddFromPalette: boolean
 }
 
-export const NODE_LABEL: Record<NodeKind, string> = {
+export const SECTION_LABEL: Record<SectionKind, string> = {
   personal: 'Personal',
   summary: 'Summary',
   experience: 'Experience',
@@ -33,7 +34,7 @@ export const NODE_LABEL: Record<NodeKind, string> = {
   custom: 'Custom Section',
 }
 
-export const SECTION_INFO: Record<NodeKind, SectionInfo> = {
+export const SECTION_INFO: Record<SectionKind, SectionInfo> = {
   personal: {
     kind: 'personal',
     label: 'Personal',
@@ -85,7 +86,7 @@ export const SECTION_INFO: Record<NodeKind, SectionInfo> = {
   },
 }
 
-export const SECTION_ORDER: Array<NodeKind> = [
+export const SECTION_ORDER: Array<SectionKind> = [
   'personal',
   'summary',
   'experience',
@@ -185,7 +186,11 @@ export function defaultProjects(): ProjectsData {
         name: 'Resumify',
         url: 'github.com/ada/resumify',
         description: 'A resume builder with live preview and PDF export.',
-        tech: ['React', 'TypeScript', 'React Flow'],
+        bullets: [
+          { id: nanoid(6), text: 'Built a live resume editor with drag-and-drop section ordering.' },
+          { id: nanoid(6), text: 'Added ATS-safe previews with print-ready layout settings.' },
+        ],
+        tech: ['React', 'TypeScript', 'Tailwind CSS'],
       },
     ],
   }
@@ -205,44 +210,43 @@ export function defaultCustom(): CustomData {
   }
 }
 
-export function defaultDataFor<K extends NodeKind>(kind: K): NodeDataMap[K] {
+export function defaultDataFor<K extends SectionKind>(kind: K): SectionDataMap[K] {
   switch (kind) {
     case 'personal':
-      return defaultPersonal() as NodeDataMap[K]
+      return defaultPersonal() as SectionDataMap[K]
     case 'summary':
-      return defaultSummary() as NodeDataMap[K]
+      return defaultSummary() as SectionDataMap[K]
     case 'experience':
-      return defaultExperience() as NodeDataMap[K]
+      return defaultExperience() as SectionDataMap[K]
     case 'education':
-      return defaultEducation() as NodeDataMap[K]
+      return defaultEducation() as SectionDataMap[K]
     case 'skills':
-      return defaultSkills() as NodeDataMap[K]
+      return defaultSkills() as SectionDataMap[K]
     case 'projects':
-      return defaultProjects() as NodeDataMap[K]
+      return defaultProjects() as SectionDataMap[K]
     case 'custom':
-      return defaultCustom() as NodeDataMap[K]
+      return defaultCustom() as SectionDataMap[K]
   }
   const neverKind: never = kind
   return neverKind
 }
 
-export function createResumeNode<K extends NodeKind>(
+export function createResumeSection<K extends SectionKind>(
   kind: K,
-  position: Point,
-  overrides?: Partial<ResumeNode<K>>,
-): ResumeNode<K> {
-  const data = { kind, ...(defaultDataFor(kind) as NodeDataMap[K]) } as NodeDataMap[K] & {
+  overrides?: Partial<ResumeSection<K>>,
+): ResumeSection<K> {
+  const data = { kind, ...(defaultDataFor(kind) as SectionDataMap[K]) } as SectionDataMap[K] & {
     kind: K
   }
 
   return {
     id: `${kind}-${nanoid(6)}`,
     type: kind,
-    position,
     data,
-    deletable: SECTION_INFO[kind].canDelete,
+    enabled: true,
+    locked: !SECTION_INFO[kind].canDelete,
     ...overrides,
-  } as unknown as ResumeNode<K>
+  } as unknown as ResumeSection<K>
 }
 
 export function makeNewResume(name = 'Untitled Resume'): Resume {
@@ -251,9 +255,15 @@ export function makeNewResume(name = 'Untitled Resume'): Resume {
   return {
     id,
     name,
-    templateId: 'classic',
-    nodes: [createResumeNode('personal', { x: 80, y: 80 })],
-    edges: [],
+    templateId: 'professional',
+    style: DEFAULT_RESUME_STYLE,
+    sections: [
+      createResumeSection('personal'),
+      createResumeSection('skills'),
+      createResumeSection('experience'),
+      createResumeSection('education'),
+      createResumeSection('projects'),
+    ],
     createdAt: now,
     updatedAt: now,
   }

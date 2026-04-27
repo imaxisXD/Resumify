@@ -9,8 +9,6 @@
 @import "@fontsource/geist-mono/400.css";
 @import "@fontsource/geist-mono/500.css";
 
-@import "@xyflow/react/dist/style.css";
-
 @theme {
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
   --font-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -179,70 +177,291 @@ input, textarea, select, button {
 
 button { cursor: pointer; }
 
-/* React Flow theming overrides */
-.react-flow {
-  background: var(--bg);
+/* Resume preview templates: all variants stay single-column and plain text for ATS safety. */
+.resume-template {
+  --resume-accent: #1f2937;
+  min-height: 880px;
+  font-feature-settings: "kern";
 }
-.react-flow__background {
-  background-color: var(--bg);
+
+.resume-page-a4 {
+  aspect-ratio: 210 / 297;
 }
-.react-flow__edge-path {
-  stroke: var(--border-strong);
-  stroke-width: 1.25;
+
+.resume-page-letter {
+  aspect-ratio: 8.5 / 11;
 }
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge:focus .react-flow__edge-path,
-.react-flow__edge:focus-visible .react-flow__edge-path {
-  stroke: var(--accent);
+
+.resume-page-pad {
+  padding: 48px;
 }
-.react-flow__handle {
-  width: 10px;
-  height: 10px;
-  background: var(--surface-2);
-  border: 1.5px solid var(--accent);
-  box-shadow: 0 0 0 4px transparent;
-  transition: box-shadow 180ms var(--ease-out), background 180ms var(--ease-out);
+
+.resume-header {
+  border-bottom: 1px solid color-mix(in oklab, var(--paper-ink) 15%, transparent);
+  padding-bottom: 20px;
 }
-.react-flow__handle:hover {
-  background: var(--accent);
-  box-shadow: 0 0 0 6px var(--accent-glow);
+
+.resume-name {
+  color: var(--resume-accent);
+  font-size: 44px;
+  line-height: 0.96;
+  font-weight: 500;
+  letter-spacing: 0;
 }
-.react-flow__handle:active {
-  background: var(--accent);
+
+.resume-title {
+  margin-top: 4px;
+  color: color-mix(in oklab, var(--paper-ink) 64%, transparent);
+  font-size: 15px;
+  font-style: italic;
 }
-.react-flow__handle.connectingto {
-  background: var(--accent);
+
+.resume-contact,
+.resume-links,
+.resume-date {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: color-mix(in oklab, var(--paper-ink) 62%, transparent);
 }
-.react-flow__attribution {
+
+.resume-contact {
+  margin-top: 12px;
+}
+
+.resume-links {
+  margin-top: 6px;
+}
+
+.resume-sections {
+  margin-top: 32px;
+}
+
+.resume-section-head {
+  margin-bottom: 8px;
+}
+
+.resume-section-head h2 {
+  color: var(--resume-accent);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.resume-section-head span {
+  background: color-mix(in oklab, var(--paper-ink) 15%, transparent);
+}
+
+.resume-copy {
+  color: color-mix(in oklab, var(--paper-ink) 80%, transparent);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.resume-main {
+  color: var(--paper-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.resume-muted {
+  color: color-mix(in oklab, var(--paper-ink) 55%, transparent);
+  font-size: 12px;
+}
+
+.resume-date {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.resume-list {
+  margin: 6px 0 0 16px;
+  list-style-type: square;
+  color: color-mix(in oklab, var(--paper-ink) 80%, transparent);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.resume-list::marker {
+  color: color-mix(in oklab, var(--paper-ink) 40%, transparent);
+}
+
+.resume-items {
+  gap: 14px;
+}
+
+.resume-spacing-compact .resume-page-pad {
+  padding: 36px 42px;
+}
+
+.resume-spacing-compact .resume-sections {
+  margin-top: 22px;
+  gap: 18px;
+}
+
+.resume-spacing-compact .resume-items {
+  gap: 9px;
+}
+
+.resume-spacing-normal .resume-sections {
+  gap: 28px;
+}
+
+.resume-spacing-wide .resume-page-pad {
+  padding: 56px;
+}
+
+.resume-spacing-wide .resume-sections {
+  gap: 34px;
+}
+
+.resume-spacing-wide .resume-items {
+  gap: 18px;
+}
+
+.resume-modern .resume-header {
+  border-top: 4px solid var(--resume-accent);
+  padding-top: 18px;
+}
+
+.resume-modern .resume-section-head h2 {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.resume-compact .resume-name {
+  font-size: 34px;
+}
+
+.resume-compact .resume-title {
+  font-size: 13px;
+}
+
+.resume-compact .resume-section-head h2 {
+  font-size: 16px;
+}
+
+.resume-compact .resume-copy,
+.resume-compact .resume-list {
+  font-size: 11.5px;
+  line-height: 1.42;
+}
+
+.resume-compact .resume-main {
+  font-size: 12.5px;
+}
+
+.resume-compact .resume-date,
+.resume-compact .resume-contact,
+.resume-compact .resume-links {
+  font-size: 10.5px;
+}
+
+.resume-professional {
+  font-family: var(--font-sans);
+  min-height: 880px;
+}
+
+.resume-professional .resume-page-pad {
+  padding: 52px 60px 44px;
+}
+
+.resume-professional .resume-header {
+  border-bottom: 0;
+  padding-bottom: 0;
+  text-align: center;
+}
+
+.resume-professional .resume-name {
+  color: var(--resume-accent);
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.resume-professional .resume-title {
   display: none;
 }
-.react-flow__controls {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+
+.resume-professional .resume-contact,
+.resume-professional .resume-links {
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: color-mix(in oklab, var(--paper-ink) 78%, transparent);
 }
-.react-flow__controls-button {
-  background: transparent;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-muted);
-  width: 32px;
-  height: 32px;
+
+.resume-professional .resume-contact {
+  margin-top: 8px;
 }
-.react-flow__controls-button:hover {
-  background: var(--surface-2);
-  color: var(--text);
+
+.resume-professional .resume-links {
+  margin-top: 0;
 }
-.react-flow__controls-button svg {
-  fill: currentColor;
-  max-width: 14px;
-  max-height: 14px;
+
+.resume-professional .resume-sections {
+  margin-top: 28px;
+  gap: 24px;
 }
-.react-flow__minimap {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+
+.resume-professional .resume-section-head {
+  margin-bottom: 12px;
+}
+
+.resume-professional .resume-section-head h2 {
+  color: var(--resume-accent);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.resume-professional .resume-section-head span {
+  display: none;
+}
+
+.resume-professional .resume-items {
+  gap: 12px;
+}
+
+.resume-professional .resume-main {
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.resume-professional .resume-copy,
+.resume-professional .resume-list {
+  font-size: 13px;
+  line-height: 1.32;
+}
+
+.resume-professional .resume-list {
+  margin-top: 8px;
+  margin-left: 22px;
+  list-style-type: disc;
+}
+
+.resume-professional .resume-date {
+  min-width: 150px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: right;
+  text-transform: none;
+  color: var(--paper-ink);
+}
+
+.resume-professional .resume-muted {
+  margin-top: 2px;
+  color: var(--paper-ink);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 /* Utility for dashed motif */
@@ -251,19 +470,6 @@ button { cursor: pointer; }
 }
 @utility dashed-accent {
   border: 1px dashed var(--accent);
-}
-
-/* Subtle grain on the canvas to give the dark surface texture */
-.canvas-grain::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-  background-size: 22px 22px;
-  background-position: 0 0;
-  mask-image: radial-gradient(ellipse at center, black 60%, transparent 100%);
-  z-index: 0;
 }
 
 /* Slight glow under primary CTA */
@@ -295,88 +501,9 @@ button { cursor: pointer; }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Slide-in panel from the right (Inspector) */
 @keyframes slide-in-right {
   0% { opacity: 0; transform: translateX(16px); }
   100% { opacity: 1; transform: translateX(0); }
-}
-
-/* Color picker bloom — petals fade in ring-by-ring while the rAF loop
-   animates their scale (so JS scale writes never lose the cascade fight). */
-@keyframes petal-fade-in {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-/* Soft halo emitted from a petal when the user commits a color. */
-@keyframes color-halo {
-  0% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
-}
-
-/* Rim breathe: the rainbow ring exhales softly while the wheel is idle. */
-@keyframes rim-breathe {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
-}
-
-/* Color picker — staged entry/exit (interface-craft choreography).
-   Stage 1: container pops in (scale + fade)
-   Stage 2: rim spins into place (slight rotation settle)
-   Stage 3: petals bloom outward, ring-staggered
-   Stage 4: dock rises up from below */
-@keyframes picker-pop-in {
-  0% { opacity: 0; transform: scale(0.84); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes picker-pop-out {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.88); }
-}
-@keyframes picker-rim-in {
-  0% { opacity: 0; transform: rotate(28deg) scale(0.94); }
-  60% { opacity: 1; }
-  100% { opacity: 1; transform: rotate(0) scale(1); }
-}
-@keyframes picker-rim-out {
-  0% { opacity: 1; transform: rotate(0) scale(1); }
-  100% { opacity: 0; transform: rotate(-14deg) scale(0.96); }
-}
-@keyframes picker-petal-in {
-  0% { opacity: 0; transform: scale(0.42); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes picker-petal-out {
-  0% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(0.6); }
-}
-@keyframes picker-dock-in {
-  0% { opacity: 0; transform: translateY(14px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes picker-dock-out {
-  0% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(12px); }
-}
-
-/* Reset feedback — icon spins, center petal pulses with a halo flash. */
-@keyframes picker-reset-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(-360deg); }
-}
-@keyframes picker-reset-pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px -4px rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.35);
-  }
-  35% {
-    transform: scale(1.22);
-    box-shadow: 0 0 0 6px rgba(255,255,255,0.45), 0 0 36px 12px rgba(255,255,255,0.4), inset 0 0 0 1px rgba(255,255,255,0.6);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px -4px rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.35);
-  }
 }
 
 .animate-fade-up { animation: fade-up 200ms var(--ease-out) both; }
@@ -405,11 +532,31 @@ button { cursor: pointer; }
 
 /* Print: only the preview surface remains */
 @media print {
+  @page {
+    size: auto;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: white !important;
+  }
+
   body * { visibility: hidden; }
   .print-surface, .print-surface * { visibility: visible; }
   .print-surface {
     position: absolute;
     inset: 0;
     background: white;
+    width: 100% !important;
+    min-height: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .resume-template {
+    min-height: 100vh;
+    width: 100% !important;
+    box-shadow: none !important;
   }
 }

@@ -1,0 +1,262 @@
+import {
+  Award,
+  BookOpen,
+  BriefcaseBusiness,
+  FileText,
+  FolderGit2,
+  GripVertical,
+  Plus,
+  Trash2,
+  UserRound,
+  Wrench,
+} from 'lucide-react'
+import { useMemo } from 'react'
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
+import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { cn } from '../../lib/cn'
+import { SECTION_INFO } from '../../stores/resumeSections'
+import { missingSectionKinds, useResumeStore } from '../../stores/resumeStore'
+import type { SectionKind, ResumeSection } from '../../stores/types'
+import { Button } from '../ui/Button'
+import { ConfirmDialog } from '../ui/ConfirmDialog'
+import { PersonalForm } from '../inspector/forms/PersonalForm'
+import { SummaryForm } from '../inspector/forms/SummaryForm'
+import { ExperienceForm } from '../inspector/forms/ExperienceForm'
+import { EducationForm } from '../inspector/forms/EducationForm'
+import { SkillsForm } from '../inspector/forms/SkillsForm'
+import { ProjectsForm } from '../inspector/forms/ProjectsForm'
+import { CustomForm } from '../inspector/forms/CustomForm'
+import { ResumePowerPanel } from '../power/ResumePowerPanel'
+
+const ICONS = {
+  personal: UserRound,
+  summary: FileText,
+  experience: BriefcaseBusiness,
+  education: BookOpen,
+  skills: Wrench,
+  projects: FolderGit2,
+  custom: Award,
+} satisfies Record<SectionKind, React.ComponentType<{ size?: number }>>
+
+export function ResumeEditor({ resumeId }: { resumeId: string }) {
+  const resume = useResumeStore((s) => s.resumes[resumeId])
+  const selectedId = useResumeStore((s) => s.selectedSectionId)
+  const setSelected = useResumeStore((s) => s.setSelectedSection)
+  const addSection = useResumeStore((s) => s.addSection)
+  const removeSection = useResumeStore((s) => s.removeSection)
+  const reorderSections = useResumeStore((s) => s.reorderSections)
+  const toggleSection = useResumeStore((s) => s.toggleSection)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const selected = useMemo(() => {
+    if (!resume) return null
+    return resume.sections.find((section) => section.id === selectedId) ?? resume.sections[0] ?? null
+  }, [resume, selectedId])
+
+  if (!resume) return null
+
+  const missing = missingSectionKinds(resume)
+
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = resume.sections.findIndex((section) => section.id === active.id)
+    const newIndex = resume.sections.findIndex((section) => section.id === over.id)
+    if (oldIndex <= 0 || newIndex <= 0) return
+    reorderSections(resumeId, arrayMove(resume.sections, oldIndex, newIndex))
+  }
+
+  return (
+    <div className="h-full min-h-0 grid grid-cols-[300px_minmax(420px,1fr)_360px] bg-[var(--bg)]">
+      <aside className="min-h-0 border-r border-[var(--border)] bg-[var(--bg-elevated)] flex flex-col">
+        <div className="px-4 py-4 border-b border-[var(--border)]">
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-[var(--text-faint)]">
+            Sections
+          </div>
+          <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-muted)]">
+            Drag sections to set resume order.
+          </p>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto p-3">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={onDragEnd}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          >
+            <SortableContext items={resume.sections.map((section) => section.id)} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-col gap-2">
+                {resume.sections.map((section) => (
+                  <SectionRow
+                    key={section.id}
+                    section={section}
+                    active={section.id === selected?.id}
+                    onSelect={() => setSelected(section.id)}
+                    onToggle={(enabled) => toggleSection(resumeId, section.id, enabled)}
+                    onRemove={() => removeSection(resumeId, section.id)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+
+        {missing.length ? (
+          <div className="border-t border-[var(--border)] p-3">
+            <div className="grid grid-cols-2 gap-2">
+              {missing.map((kind) => (
+                <Button
+                  key={kind}
+                  size="sm"
+                  variant="secondary"
+                  icon={<Plus size={12} />}
+                  onClick={() => addSection(resumeId, kind)}
+                >
+                  {SECTION_INFO[kind].label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </aside>
+
+      <main className="min-h-0 overflow-y-auto">
+        {selected ? (
+          <div className="mx-auto max-w-[760px] px-6 py-6">
+            <header className="mb-5 flex items-center gap-3">
+              <SectionIcon kind={selected.type} className="size-9" />
+              <div>
+                <div className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-[var(--text-faint)]">
+                  Edit section
+                </div>
+                <h2 className="font-display text-[30px] leading-none tracking-tight">
+                  {SECTION_INFO[selected.type].label}
+                </h2>
+              </div>
+            </header>
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-5">
+              <FormFor section={selected} resumeId={resumeId} />
+            </div>
+          </div>
+        ) : null}
+      </main>
+      <ResumePowerPanel resumeId={resumeId} />
+    </div>
+  )
+}
+
+function SectionRow({
+  section,
+  active,
+  onSelect,
+  onToggle,
+  onRemove,
+}: {
+  section: ResumeSection
+  active: boolean
+  onSelect: () => void
+  onToggle: (enabled: boolean) => void
+  onRemove: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: section.id,
+    disabled: section.type === 'personal',
+  })
+  const style = { transform: CSS.Transform.toString(transform), transition }
+  const label = SECTION_INFO[section.type].label
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'group rounded-xl border bg-[var(--surface)] transition-[border-color,background-color,box-shadow] duration-200',
+        active ? 'border-[var(--accent-hi)] bg-[var(--surface-2)]' : 'border-[var(--border)] hover:border-[var(--border-strong)]',
+        isDragging && 'z-10 shadow-2xl shadow-black/35',
+      )}
+    >
+      <div className="flex items-center">
+        <button
+          type="button"
+          className={cn(
+            'w-9 self-stretch grid place-items-center border-r border-[var(--border)] text-[var(--text-faint)]',
+            section.type === 'personal' ? 'cursor-default opacity-40' : 'cursor-grab active:cursor-grabbing hover:text-[var(--text-muted)]',
+          )}
+          {...attributes}
+          {...listeners}
+          aria-label={`Move ${label}`}
+        >
+          <GripVertical size={14} />
+        </button>
+        <button type="button" onClick={onSelect} className="min-w-0 flex-1 flex items-center gap-2.5 px-3 py-3 text-left">
+          <SectionIcon kind={section.type} />
+          <span className="min-w-0">
+            <span className="block text-[13px] font-medium text-[var(--text)] truncate">{label}</span>
+            <span className="block text-[11.5px] text-[var(--text-faint)] truncate">{SECTION_INFO[section.type].hint}</span>
+          </span>
+        </button>
+        {section.type !== 'personal' ? (
+          <label className="px-2">
+            <input
+              type="checkbox"
+              checked={section.enabled}
+              onChange={(e) => onToggle(e.currentTarget.checked)}
+              aria-label={`Show ${label}`}
+            />
+          </label>
+        ) : null}
+        {section.type !== 'personal' ? (
+          <ConfirmDialog
+            title={`Delete ${label}?`}
+            description={`This removes ${label} from this resume. You cannot undo this.`}
+            confirmLabel="Delete section"
+            onConfirm={onRemove}
+          >
+            <button
+              type="button"
+              className="w-9 self-stretch grid place-items-center border-l border-[var(--border)] text-[var(--text-faint)] hover:text-[var(--danger)]"
+              aria-label={`Delete ${label}`}
+            >
+              <Trash2 size={13} />
+            </button>
+          </ConfirmDialog>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function SectionIcon({ kind, className }: { kind: SectionKind; className?: string }) {
+  const Icon = ICONS[kind]
+  return (
+    <span className={cn('size-7 shrink-0 rounded-md border border-[var(--border)] bg-[var(--surface-2)] grid place-items-center text-[var(--accent-hi)]', className)}>
+      <Icon size={14} />
+    </span>
+  )
+}
+
+function FormFor({ section, resumeId }: { section: ResumeSection; resumeId: string }) {
+  switch (section.type) {
+    case 'personal':
+      return <PersonalForm resumeId={resumeId} section={section as ResumeSection<'personal'>} />
+    case 'summary':
+      return <SummaryForm resumeId={resumeId} section={section as ResumeSection<'summary'>} />
+    case 'experience':
+      return <ExperienceForm resumeId={resumeId} section={section as ResumeSection<'experience'>} />
+    case 'education':
+      return <EducationForm resumeId={resumeId} section={section as ResumeSection<'education'>} />
+    case 'skills':
+      return <SkillsForm resumeId={resumeId} section={section as ResumeSection<'skills'>} />
+    case 'projects':
+      return <ProjectsForm resumeId={resumeId} section={section as ResumeSection<'projects'>} />
+    case 'custom':
+      return <CustomForm resumeId={resumeId} section={section as ResumeSection<'custom'>} />
+  }
+}

@@ -1,27 +1,33 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Sparkles } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { Badge } from '../components/ui/Badge'
 
 export const Route = createFileRoute('/templates')({ component: Templates })
 
 const templates = [
   {
+    id: 'professional',
+    name: 'Pro ATS',
+    description: 'Matches the uploaded resume style: centered header, blue section labels, tight one-page spacing.',
+    available: true,
+  },
+  {
     id: 'classic',
     name: 'Classic',
-    description: 'Serif-led, traditional. The default for most engineering and academic resumes.',
+    description: 'Traditional single-column resume with clear headings and plain text.',
     available: true,
   },
   {
     id: 'modern',
     name: 'Modern',
-    description: 'Two-column with indigo accents. Great for product, design, and creative roles.',
-    available: false,
+    description: 'Sharper heading style with an accent line, still single-column and ATS safe.',
+    available: true,
   },
   {
     id: 'compact',
     name: 'Compact',
-    description: 'Single-page guarantee. Dense, every line earned.',
-    available: false,
+    description: 'Tighter spacing for longer resumes while keeping normal text structure.',
+    available: true,
   },
 ]
 
@@ -49,25 +55,23 @@ function Templates() {
               className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 animate-fade-up"
               style={{ animationDelay: `${i * 70}ms` }}
             >
-              <div
-                className={
-                  'aspect-[3/4] rounded-xl border border-dashed border-[var(--border-strong)] grid place-items-center text-[var(--text-faint)] ' +
-                  (t.available ? 'bg-[var(--paper)]/95 text-[var(--paper-ink)]' : 'bg-[var(--surface-2)]')
-                }
-              >
-                {t.available ? (
-                  <span className="font-display text-[26px] tracking-tight">{t.name}</span>
-                ) : (
-                  <Sparkles size={22} className="opacity-50" />
-                )}
+              <div className="aspect-[3/4] rounded-xl border border-dashed border-[var(--border-strong)] bg-[var(--paper)]/95 p-5 text-[var(--paper-ink)]">
+                <div className="flex items-center gap-2 border-b border-black/15 pb-3">
+                  <FileText size={16} />
+                  <span className="font-display text-[24px] tracking-tight">{t.name}</span>
+                </div>
+                <div className="mt-5 flex flex-col gap-3">
+                  <span className="h-2 w-2/3 bg-black/70" />
+                  <span className="h-1.5 w-full bg-black/20" />
+                  <span className="h-1.5 w-5/6 bg-black/20" />
+                  <span className="mt-2 h-2 w-1/2 bg-black/70" />
+                  <span className="h-1.5 w-full bg-black/20" />
+                  <span className="h-1.5 w-4/5 bg-black/20" />
+                </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <h3 className="font-display text-[22px] leading-tight">{t.name}</h3>
-                {t.available ? (
-                  <Badge tone="accent">Available</Badge>
-                ) : (
-                  <Badge tone="mono">Coming soon</Badge>
-                )}
+                <Badge tone="accent">ATS safe</Badge>
               </div>
               <p className="mt-2 text-[13px] text-[var(--text-muted)] leading-relaxed">
                 {t.description}

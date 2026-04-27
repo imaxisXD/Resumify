@@ -3,9 +3,9 @@ import {
   Columns2,
   Download,
   Eye,
-  Inbox,
   LayoutGrid,
   Layout,
+  Palette,
   Pencil,
   Sparkles,
 } from 'lucide-react'
@@ -16,14 +16,39 @@ import { Badge } from '../ui/Badge'
 import { Select } from '../ui/Select'
 import { SegmentedControl } from '../ui/SegmentedControl'
 import { ThemeToggle } from '../ui/ThemeToggle'
-import { Brand } from './Brand'
 import { Tooltip } from '../ui/Tooltip'
+import type { ResumeStyle, TemplateId } from '../../stores/types'
+
+const templateOptions: Array<{ value: TemplateId; label: string; hint: string }> = [
+  { value: 'professional', label: 'Pro ATS', hint: 'PDF' },
+  { value: 'classic', label: 'Classic', hint: 'ATS' },
+  { value: 'modern', label: 'Modern', hint: 'ATS' },
+  { value: 'compact', label: 'Compact', hint: 'ATS' },
+]
+
+const pageOptions: Array<{ value: ResumeStyle['pageSize']; label: string }> = [
+  { value: 'a4', label: 'A4' },
+  { value: 'letter', label: 'Letter' },
+]
+
+const fontOptions: Array<{ value: ResumeStyle['font']; label: string }> = [
+  { value: 'serif', label: 'Serif' },
+  { value: 'sans', label: 'Sans' },
+  { value: 'mono', label: 'Mono' },
+]
+
+const spacingOptions: Array<{ value: ResumeStyle['spacing']; label: string }> = [
+  { value: 'compact', label: 'Tight' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'wide', label: 'Wide' },
+]
 
 export function TopBar({ resumeId }: { resumeId: string }) {
   const resume = useResumeStore((s) => s.resumes[resumeId])
   const view = useResumeStore((s) => s.view)
   const setView = useResumeStore((s) => s.setView)
   const setTemplate = useResumeStore((s) => s.setTemplate)
+  const setResumeStyle = useResumeStore((s) => s.setResumeStyle)
   const renameResume = useResumeStore((s) => s.renameResume)
   const errors = useMemo(() => (resume ? selectErrors(resume) : []), [resume])
 
@@ -42,6 +67,12 @@ export function TopBar({ resumeId }: { resumeId: string }) {
   }, [errorsOpen])
 
   if (!resume) return null
+
+  const downloadResume = async () => {
+    useResumeStore.getState().saveSnapshot(resumeId, 'Before PDF export')
+    const { exportResumePdf } = await import('../../features/pdfExport')
+    await exportResumePdf(resume)
+  }
 
   return (
     <header className="shrink-0 h-[48px] flex items-center gap-2 px-3 border-b border-[var(--border)] bg-[var(--bg-elevated)] z-20">
@@ -104,7 +135,7 @@ export function TopBar({ resumeId }: { resumeId: string }) {
               </div>
               {errors.length === 0 ? (
                 <div className="text-[12px] text-[var(--text-muted)]">
-                  All sections are connected and ready to preview.
+                  The resume has the basics needed for an ATS-safe PDF.
                 </div>
               ) : (
                 <ul className="flex flex-col gap-1.5">
@@ -135,8 +166,43 @@ export function TopBar({ resumeId }: { resumeId: string }) {
             { value: 'preview', label: 'Preview', icon: <Eye size={12} /> },
           ]}
         />
-        <Tooltip label="Download (PDF in next phase)">
-          <Button variant="primary" size="md" icon={<Download size={12} />} className="h-9 px-3" disabled>
+        <Select
+          value={resume.templateId ?? 'professional'}
+          onChange={(value) => setTemplate(resumeId, value)}
+          options={templateOptions}
+          triggerIcon={<Layout size={13} />}
+          className="h-9 min-w-[118px]"
+        />
+        <Select
+          value={resume.style?.pageSize ?? 'a4'}
+          onChange={(value) => setResumeStyle(resumeId, { pageSize: value })}
+          options={pageOptions}
+          className="h-9 min-w-[84px]"
+        />
+        <Select
+          value={resume.style?.font ?? 'serif'}
+          onChange={(value) => setResumeStyle(resumeId, { font: value })}
+          options={fontOptions}
+          className="h-9 min-w-[90px]"
+        />
+        <Select
+          value={resume.style?.spacing ?? 'normal'}
+          onChange={(value) => setResumeStyle(resumeId, { spacing: value })}
+          options={spacingOptions}
+          className="h-9 min-w-[96px]"
+        />
+        <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 text-[12px] text-[var(--text-muted)]">
+          <Palette size={13} />
+          <input
+            type="color"
+            value={resume.style?.accentColor ?? '#1f2937'}
+            onChange={(e) => setResumeStyle(resumeId, { accentColor: e.currentTarget.value })}
+            className="size-5 rounded border border-[var(--border)] bg-transparent p-0"
+            aria-label="Accent color"
+          />
+        </label>
+        <Tooltip label="Download PDF">
+          <Button variant="primary" size="md" icon={<Download size={12} />} className="h-9 px-3" onClick={downloadResume}>
             Download
           </Button>
         </Tooltip>

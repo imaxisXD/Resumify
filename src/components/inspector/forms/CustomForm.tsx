@@ -3,23 +3,23 @@ import { nanoid } from 'nanoid'
 import { useResumeStore } from '../../../stores/resumeStore'
 import { Button } from '../../ui/Button'
 import { FieldLabel, Input, TextArea } from '../../ui/Input'
-import type { CustomItem, ResumeNode } from '../../../stores/types'
-import { useNodeListField } from '../useNodeListField'
+import type { CustomItem, ResumeSection } from '../../../stores/types'
+import { useSectionListField } from '../useSectionListField'
 
 export function CustomForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'custom'>
+  section: ResumeSection<'custom'>
 }) {
-  const update = useResumeStore((s) => s.updateNodeData)
-  const data = node.data
+  const update = useResumeStore((s) => s.updateSectionData)
+  const data = section.data
   const set = (patch: Partial<typeof data>) =>
-    update<'custom'>(resumeId, node.id, patch as Partial<typeof data>)
-  const customItems = useNodeListField<'custom', CustomItem>({
+    update<'custom'>(resumeId, section.id, patch as Partial<typeof data>)
+  const customItems = useSectionListField<'custom', CustomItem>({
     resumeId,
-    node,
+    section,
     field: 'items',
     makeItem: makeEmptyCustomItem,
   })

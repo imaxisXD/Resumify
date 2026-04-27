@@ -2,24 +2,34 @@ import { Plus } from 'lucide-react'
 import { nanoid } from 'nanoid'
 import { Button } from '../../ui/Button'
 import { FieldLabel, Input, TextArea } from '../../ui/Input'
-import type { ProjectItem, ResumeNode } from '../../../stores/types'
+import type { ProjectItem, ResumeSection } from '../../../stores/types'
 import { TagsInput } from '../TagsInput'
-import { useNodeListField } from '../useNodeListField'
+import { useSectionListField } from '../useSectionListField'
 
 export function ProjectsForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'projects'>
+  section: ResumeSection<'projects'>
 }) {
-  const projects = useNodeListField<'projects', ProjectItem>({
+  const projects = useSectionListField<'projects', ProjectItem>({
     resumeId,
-    node,
+    section,
     field: 'items',
     makeItem: makeEmptyProjectItem,
   })
   const items = projects.items
+
+  const updateBullets = (id: string, text: string) => {
+    projects.update(id, {
+      bullets: text
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => ({ id: nanoid(6), text: line })),
+    })
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -67,6 +77,14 @@ export function ProjectsForm({
                 placeholder="What it does, in one line."
               />
             </Field>
+            <Field label="Bullets">
+              <TextArea
+                rows={4}
+                value={(item.bullets ?? []).map((bullet) => bullet.text).join('\n')}
+                onChange={(e) => updateBullets(item.id, e.target.value)}
+                placeholder="One project result per line."
+              />
+            </Field>
             <div>
               <FieldLabel>Tech</FieldLabel>
               <TagsInput
@@ -92,7 +110,7 @@ export function ProjectsForm({
 }
 
 function makeEmptyProjectItem(): ProjectItem {
-  return { id: nanoid(6), name: '', url: '', description: '', tech: [] }
+  return { id: nanoid(6), name: '', url: '', description: '', bullets: [], tech: [] }
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

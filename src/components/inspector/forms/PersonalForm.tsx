@@ -3,19 +3,19 @@ import { nanoid } from 'nanoid'
 import { useResumeStore } from '../../../stores/resumeStore'
 import { FieldLabel, Input } from '../../ui/Input'
 import { Button } from '../../ui/Button'
-import type { ResumeNode } from '../../../stores/types'
+import type { ResumeSection } from '../../../stores/types'
 
 export function PersonalForm({
   resumeId,
-  node,
+  section,
 }: {
   resumeId: string
-  node: ResumeNode<'personal'>
+  section: ResumeSection<'personal'>
 }) {
-  const update = useResumeStore((s) => s.updateNodeData)
-  const data = node.data
+  const update = useResumeStore((s) => s.updateSectionData)
+  const data = section.data
   const set = (patch: Partial<typeof data>) =>
-    update<'personal'>(resumeId, node.id, patch as Partial<typeof data>)
+    update<'personal'>(resumeId, section.id, patch as Partial<typeof data>)
 
   return (
     <div className="flex flex-col gap-5">

@@ -1,9 +1,9 @@
 export {
-  NODE_LABEL,
+  SECTION_LABEL,
   PALETTE_ORDER,
   SECTION_INFO,
   SECTION_ORDER,
-  createResumeNode,
+  createResumeSection,
   defaultCustom,
   defaultDataFor,
   defaultEducation,

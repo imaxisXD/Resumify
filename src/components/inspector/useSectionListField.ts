@@ -1,5 +1,5 @@
 import { useResumeStore } from '../../stores/resumeStore'
-import type { NodeDataMap, NodeKind, ResumeNode } from '../../stores/types'
+import type { SectionDataMap, SectionKind, ResumeSection } from '../../stores/types'
 
 export type ListItem = { id: string }
 
@@ -30,23 +30,23 @@ export function updateList<T extends ListItem>(
   }
 }
 
-export function useNodeListField<K extends NodeKind, T extends ListItem>({
+export function useSectionListField<K extends SectionKind, T extends ListItem>({
   resumeId,
-  node,
+  section,
   field,
   makeItem,
 }: {
   resumeId: string
-  node: ResumeNode<K>
-  field: keyof NodeDataMap[K] & string
+  section: ResumeSection<K>
+  field: keyof SectionDataMap[K] & string
   makeItem: () => T
 }): ListEdit<T> {
-  const updateNodeData = useResumeStore((s) => s.updateNodeData)
-  const data = node.data as Record<string, unknown>
+  const updateSectionData = useResumeStore((s) => s.updateSectionData)
+  const data = section.data as Record<string, unknown>
   const items = (Array.isArray(data[field]) ? data[field] : []) as Array<T>
 
   const replace = (next: Array<T>) => {
-    updateNodeData<K>(resumeId, node.id, { [field]: next } as Partial<NodeDataMap[K]>)
+    updateSectionData<K>(resumeId, section.id, { [field]: next } as Partial<SectionDataMap[K]>)
   }
 
   return {

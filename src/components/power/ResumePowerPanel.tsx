@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Check, Download, FileUp, History, KeyRound, Lightbulb, Save, Search, ShieldCheck, UserRound } from 'lucide-react'
+import { Check, Download, FileUp, History, KeyRound, Lightbulb, Save, Search, ShieldCheck, UserRound, X } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { FieldLabel, Input, TextArea } from '../ui/Input'
@@ -23,20 +23,34 @@ const tabs: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
   { id: 'backup', label: 'Backup', icon: <Download size={13} /> },
 ]
 
-export function ResumePowerPanel({ resumeId }: { resumeId: string }) {
+export function ResumePowerPanel({ resumeId, onClose }: { resumeId: string; onClose?: () => void }) {
   const [tab, setTab] = useState<Tab>('score')
   const resume = useResumeStore((s) => s.resumes[resumeId])
   if (!resume) return null
 
   return (
-    <aside className="min-h-0 border-l border-[var(--border)] bg-[var(--bg-elevated)] flex flex-col">
+    <aside className="h-full min-h-0 bg-[var(--bg-elevated)] flex flex-col">
       <div className="px-4 py-4 border-b border-[var(--border)]">
-        <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-[var(--text-faint)]">
-          Power tools
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-[var(--text-faint)]">
+              Assist
+            </div>
+            <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-muted)]">
+              Fix gaps, import, match jobs, and save versions.
+            </p>
+          </div>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid size-9 shrink-0 place-items-center rounded-md border border-[var(--border)] bg-[var(--surface)] text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+              aria-label="Close assist tools"
+            >
+              <X size={14} />
+            </button>
+          ) : null}
         </div>
-        <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-muted)]">
-          Import, score, match, save, and export.
-        </p>
       </div>
       <div className="grid grid-cols-4 gap-1.5 p-3 border-b border-[var(--border)]">
         {tabs.map((item) => (

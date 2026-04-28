@@ -366,7 +366,13 @@ export const useResumeStore = create<State & Actions>()(
         getItem: (name) => {
           if (typeof window === 'undefined') return null
           const raw = window.localStorage.getItem(name) ?? window.localStorage.getItem('resumify.v1')
-          return raw ? JSON.parse(raw) : null
+          if (!raw) return null
+          try {
+            return JSON.parse(raw)
+          } catch {
+            window.localStorage.removeItem(name)
+            return null
+          }
         },
         setItem: (name, value) => {
           if (typeof window === 'undefined') return
@@ -400,12 +406,26 @@ export const useResumeStore = create<State & Actions>()(
         state.aiSettings = { ...defaultAiSettings, ...state.aiSettings }
         return state
       },
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true)
+      onRehydrateStorage: () => (state, error) => {
+        if (state) {
+          state.setHasHydrated(true)
+          return
+        }
+        if (error) {
+          useResumeStore.setState({ hasHydrated: true })
+        }
       },
     },
   ),
 )
+
+if (typeof window !== 'undefined') {
+  queueMicrotask(() => {
+    if (!useResumeStore.getState().hasHydrated) {
+      useResumeStore.setState({ hasHydrated: true })
+    }
+  })
+}
 
 export function getResume(id: string | undefined): Resume | undefined {
   if (!id) return undefined

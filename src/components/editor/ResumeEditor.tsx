@@ -5,12 +5,14 @@ import {
   FileText,
   FolderGit2,
   GripVertical,
+  PanelRightOpen,
   Plus,
+  Sparkles,
   Trash2,
   UserRound,
   Wrench,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -29,6 +31,7 @@ import { SkillsForm } from '../inspector/forms/SkillsForm'
 import { ProjectsForm } from '../inspector/forms/ProjectsForm'
 import { CustomForm } from '../inspector/forms/CustomForm'
 import { ResumePowerPanel } from '../power/ResumePowerPanel'
+import { scoreResume } from '../../features/resumeScore'
 
 const ICONS = {
   personal: UserRound,
@@ -41,6 +44,7 @@ const ICONS = {
 } satisfies Record<SectionKind, React.ComponentType<{ size?: number }>>
 
 export function ResumeEditor({ resumeId }: { resumeId: string }) {
+  const [toolsOpen, setToolsOpen] = useState(false)
   const resume = useResumeStore((s) => s.resumes[resumeId])
   const selectedId = useResumeStore((s) => s.selectedSectionId)
   const setSelected = useResumeStore((s) => s.setSelectedSection)
@@ -62,6 +66,7 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
   if (!resume) return null
 
   const missing = missingSectionKinds(resume)
+  const score = scoreResume(resume)
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -73,7 +78,8 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
   }
 
   return (
-    <div className="h-full min-h-0 grid grid-cols-[300px_minmax(420px,1fr)_360px] bg-[var(--bg)]">
+    <div className="relative h-full min-h-0 overflow-hidden bg-[var(--bg)]">
+      <div className="h-full min-h-0 grid grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
       <aside className="min-h-0 border-r border-[var(--border)] bg-[var(--bg-elevated)] flex flex-col">
         <div className="px-4 py-4 border-b border-[var(--border)]">
           <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-[var(--text-faint)]">
@@ -129,16 +135,34 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
 
       <main className="min-h-0 overflow-y-auto">
         {selected ? (
-          <div className="mx-auto max-w-[760px] px-6 py-6">
-            <header className="mb-5 flex items-center gap-3">
-              <SectionIcon kind={selected.type} className="size-9" />
-              <div>
-                <div className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-[var(--text-faint)]">
-                  Edit section
+          <div className="mx-auto max-w-[820px] px-6 py-6">
+            <header className="mb-5 flex items-start justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <SectionIcon kind={selected.type} className="size-9" />
+                <div className="min-w-0">
+                  <div className="font-mono text-[10.5px] uppercase tracking-[0.2em] text-[var(--text-faint)]">
+                    Edit section
+                  </div>
+                  <h2 className="font-display text-[30px] leading-none tracking-tight">
+                    {SECTION_INFO[selected.type].label}
+                  </h2>
                 </div>
-                <h2 className="font-display text-[30px] leading-none tracking-tight">
-                  {SECTION_INFO[selected.type].label}
-                </h2>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <div className="hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-right md:block">
+                  <div className="text-[12px] font-medium text-[var(--text)]">{score.score}/100</div>
+                  <div className="text-[10.5px] text-[var(--text-faint)]">
+                    {score.issues.length ? `${score.issues.length} fixes` : 'Ready'}
+                  </div>
+                </div>
+                <Button
+                  variant="primary"
+                  icon={<Sparkles size={14} />}
+                  iconRight={<PanelRightOpen size={14} />}
+                  onClick={() => setToolsOpen(true)}
+                >
+                  Assist
+                </Button>
               </div>
             </header>
             <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] p-5">
@@ -147,7 +171,20 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
           </div>
         ) : null}
       </main>
-      <ResumePowerPanel resumeId={resumeId} />
+      </div>
+      {toolsOpen ? (
+        <div className="absolute inset-0 z-30">
+          <button
+            type="button"
+            aria-label="Close assist tools"
+            className="absolute inset-0 bg-black/35"
+            onClick={() => setToolsOpen(false)}
+          />
+          <div className="absolute inset-y-0 right-0 w-[min(390px,calc(100vw-320px))] min-w-[340px] border-l border-[var(--border)] bg-[var(--bg-elevated)] shadow-2xl shadow-black/35">
+            <ResumePowerPanel resumeId={resumeId} onClose={() => setToolsOpen(false)} />
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

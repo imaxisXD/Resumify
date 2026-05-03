@@ -31,7 +31,7 @@ import { SkillsForm } from '../inspector/forms/SkillsForm'
 import { ProjectsForm } from '../inspector/forms/ProjectsForm'
 import { CustomForm } from '../inspector/forms/CustomForm'
 import { ResumePowerPanel } from '../power/ResumePowerPanel'
-import { scoreResume } from '../../features/resumeScore'
+import { scoreResume, type ScoreIssue } from '../../features/resumeScore'
 
 const ICONS = {
   personal: UserRound,
@@ -85,9 +85,20 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
           <div className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-[var(--text-faint)]">
             Sections
           </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-muted)]">
-            Drag sections to set resume order.
-          </p>
+          <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-faint)]">Resume score</div>
+                <div className="mt-1 text-[24px] font-semibold leading-none text-[var(--text)]">{score.score}</div>
+              </div>
+              <div className="text-right text-[11.5px] text-[var(--text-muted)]">
+                {score.issues.length ? `${score.issues.length} fixes` : 'Ready'}
+              </div>
+            </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--bg)]">
+              <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${score.score}%` }} />
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto p-3">
@@ -104,6 +115,7 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
                     key={section.id}
                     section={section}
                     active={section.id === selected?.id}
+                    issueCount={score.issues.filter((item) => item.sectionId === section.id).length}
                     onSelect={() => setSelected(section.id)}
                     onToggle={(enabled) => toggleSection(resumeId, section.id, enabled)}
                     onRemove={() => removeSection(resumeId, section.id)}
@@ -131,6 +143,9 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
             </div>
           </div>
         ) : null}
+        {selected && score.issues.some((item) => item.sectionId === selected.id) ? (
+          <SectionQualityPanel issues={score.issues.filter((item) => item.sectionId === selected.id)} />
+        ) : null}
       </aside>
 
       <main className="min-h-0 overflow-y-auto">
@@ -149,12 +164,6 @@ export function ResumeEditor({ resumeId }: { resumeId: string }) {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <div className="hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-right md:block">
-                  <div className="text-[12px] font-medium text-[var(--text)]">{score.score}/100</div>
-                  <div className="text-[10.5px] text-[var(--text-faint)]">
-                    {score.issues.length ? `${score.issues.length} fixes` : 'Ready'}
-                  </div>
-                </div>
                 <Button
                   variant="primary"
                   icon={<Sparkles size={14} />}
@@ -195,9 +204,11 @@ function SectionRow({
   onSelect,
   onToggle,
   onRemove,
+  issueCount,
 }: {
   section: ResumeSection
   active: boolean
+  issueCount: number
   onSelect: () => void
   onToggle: (enabled: boolean) => void
   onRemove: () => void
@@ -238,6 +249,11 @@ function SectionRow({
             <span className="block text-[13px] font-medium text-[var(--text)] truncate">{label}</span>
             <span className="block text-[11.5px] text-[var(--text-faint)] truncate">{SECTION_INFO[section.type].hint}</span>
           </span>
+          {issueCount ? (
+            <span className="ml-auto rounded-md border border-[color-mix(in_oklab,var(--danger)_28%,transparent)] bg-[color-mix(in_oklab,var(--danger)_12%,transparent)] px-1.5 py-0.5 text-[10.5px] font-medium text-[var(--danger)]">
+              {issueCount}
+            </span>
+          ) : null}
         </button>
         {section.type !== 'personal' ? (
           <label className="px-2">
@@ -264,6 +280,29 @@ function SectionRow({
               <Trash2 size={13} />
             </button>
           </ConfirmDialog>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function SectionQualityPanel({ issues }: { issues: Array<ScoreIssue> }) {
+  return (
+    <div className="border-t border-[var(--border)] p-3">
+      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
+        Section health
+      </div>
+      <div className="mt-2 flex flex-col gap-2">
+        {issues.slice(0, 5).map((issue) => (
+          <div key={issue.id} className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5">
+            <div className="text-[12px] font-medium text-[var(--text)]">{issue.label}</div>
+            <p className="mt-1 text-[11.5px] leading-relaxed text-[var(--text-muted)]">{issue.fix}</p>
+          </div>
+        ))}
+        {!issues.length ? (
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-[12px] text-[var(--text-muted)]">
+            No obvious issues in this section.
+          </div>
         ) : null}
       </div>
     </div>

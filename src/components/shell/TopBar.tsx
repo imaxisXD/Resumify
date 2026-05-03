@@ -3,57 +3,29 @@ import {
   Columns2,
   Download,
   Eye,
-  LayoutGrid,
-  Layout,
-  Palette,
   Pencil,
   Sparkles,
+  SquarePen,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useResumeStore, selectErrors } from '../../stores/resumeStore'
 import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
-import { Select } from '../ui/Select'
 import { SegmentedControl } from '../ui/SegmentedControl'
 import { ThemeToggle } from '../ui/ThemeToggle'
 import { Tooltip } from '../ui/Tooltip'
-import type { ResumeStyle, TemplateId } from '../../stores/types'
-
-const templateOptions: Array<{ value: TemplateId; label: string; hint: string }> = [
-  { value: 'professional', label: 'Pro ATS', hint: 'PDF' },
-  { value: 'classic', label: 'Classic', hint: 'ATS' },
-  { value: 'modern', label: 'Modern', hint: 'ATS' },
-  { value: 'compact', label: 'Compact', hint: 'ATS' },
-]
-
-const pageOptions: Array<{ value: ResumeStyle['pageSize']; label: string }> = [
-  { value: 'a4', label: 'A4' },
-  { value: 'letter', label: 'Letter' },
-]
-
-const fontOptions: Array<{ value: ResumeStyle['font']; label: string }> = [
-  { value: 'serif', label: 'Serif' },
-  { value: 'sans', label: 'Sans' },
-  { value: 'mono', label: 'Mono' },
-]
-
-const spacingOptions: Array<{ value: ResumeStyle['spacing']; label: string }> = [
-  { value: 'compact', label: 'Tight' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'wide', label: 'Wide' },
-]
 
 export function TopBar({ resumeId }: { resumeId: string }) {
   const resume = useResumeStore((s) => s.resumes[resumeId])
   const view = useResumeStore((s) => s.view)
   const setView = useResumeStore((s) => s.setView)
-  const setTemplate = useResumeStore((s) => s.setTemplate)
-  const setResumeStyle = useResumeStore((s) => s.setResumeStyle)
   const renameResume = useResumeStore((s) => s.renameResume)
+  const aiSettings = useResumeStore((s) => s.aiSettings)
   const errors = useMemo(() => (resume ? selectErrors(resume) : []), [resume])
 
   const [renaming, setRenaming] = useState(false)
   const [errorsOpen, setErrorsOpen] = useState(false)
+  const [codexStatus, setCodexStatus] = useState<'checking' | 'ready' | 'offline'>('checking')
   const errorsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -65,6 +37,53 @@ export function TopBar({ resumeId }: { resumeId: string }) {
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
   }, [errorsOpen])
+
+  useEffect(() => {
+    if (!aiSettings.enabled || aiSettings.provider !== 'codex-local') {
+      setCodexStatus('checking')
+      return
+    }
+
+    let disposed = false
+    let controller: AbortController | null = null
+    let timer: number | null = null
+    const endpoint = (aiSettings.localEndpoint || 'http://127.0.0.1:4317').replace(/\/$/, '')
+
+    const clearProbe = () => {
+      if (timer) window.clearTimeout(timer)
+      timer = null
+      controller = null
+    }
+
+    const checkCodex = () => {
+      controller?.abort()
+      controller = new AbortController()
+      timer = window.setTimeout(() => controller?.abort(), 1800)
+      fetch(`${endpoint}/health`, { signal: controller.signal })
+        .then((response) => {
+          if (!disposed) setCodexStatus(response.ok ? 'ready' : 'offline')
+        })
+        .catch(() => {
+          if (!disposed) setCodexStatus('offline')
+        })
+        .finally(clearProbe)
+    }
+
+    setCodexStatus('checking')
+    checkCodex()
+    const interval = window.setInterval(checkCodex, 5000)
+    window.addEventListener('focus', checkCodex)
+    document.addEventListener('visibilitychange', checkCodex)
+
+    return () => {
+      disposed = true
+      controller?.abort()
+      clearProbe()
+      window.clearInterval(interval)
+      window.removeEventListener('focus', checkCodex)
+      document.removeEventListener('visibilitychange', checkCodex)
+    }
+  }, [aiSettings.enabled, aiSettings.localEndpoint, aiSettings.provider])
 
   if (!resume) return null
 
@@ -154,6 +173,14 @@ export function TopBar({ resumeId }: { resumeId: string }) {
             </div>
           ) : null}
         </div>
+        <Badge
+          tone={aiStatusTone(aiSettings, codexStatus)}
+          className="h-8 gap-1.5 px-2.5 text-[12px]"
+          title={aiStatusTitle(aiSettings, codexStatus)}
+        >
+          <Sparkles size={11} />
+          {aiStatusLabel(aiSettings, codexStatus)}
+        </Badge>
       </div>
 
       <div className="ml-auto flex items-center gap-2">
@@ -161,46 +188,11 @@ export function TopBar({ resumeId }: { resumeId: string }) {
           value={view}
           onChange={setView}
           options={[
-            { value: 'builder', label: 'Builder', icon: <LayoutGrid size={12} /> },
-            { value: 'both', label: 'Both', icon: <Columns2 size={12} /> },
+            { value: 'builder', label: 'Write', icon: <SquarePen size={12} /> },
+            { value: 'both', label: 'Split', icon: <Columns2 size={12} /> },
             { value: 'preview', label: 'Preview', icon: <Eye size={12} /> },
           ]}
         />
-        <Select
-          value={resume.templateId ?? 'professional'}
-          onChange={(value) => setTemplate(resumeId, value)}
-          options={templateOptions}
-          triggerIcon={<Layout size={13} />}
-          className="h-9 min-w-[118px]"
-        />
-        <Select
-          value={resume.style?.pageSize ?? 'a4'}
-          onChange={(value) => setResumeStyle(resumeId, { pageSize: value })}
-          options={pageOptions}
-          className="h-9 min-w-[84px]"
-        />
-        <Select
-          value={resume.style?.font ?? 'serif'}
-          onChange={(value) => setResumeStyle(resumeId, { font: value })}
-          options={fontOptions}
-          className="h-9 min-w-[90px]"
-        />
-        <Select
-          value={resume.style?.spacing ?? 'normal'}
-          onChange={(value) => setResumeStyle(resumeId, { spacing: value })}
-          options={spacingOptions}
-          className="h-9 min-w-[96px]"
-        />
-        <label className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 text-[12px] text-[var(--text-muted)]">
-          <Palette size={13} />
-          <input
-            type="color"
-            value={resume.style?.accentColor ?? '#1f2937'}
-            onChange={(e) => setResumeStyle(resumeId, { accentColor: e.currentTarget.value })}
-            className="size-5 rounded border border-[var(--border)] bg-transparent p-0"
-            aria-label="Accent color"
-          />
-        </label>
         <Tooltip label="Download PDF">
           <Button variant="primary" size="md" icon={<Download size={12} />} className="h-9 px-3" onClick={downloadResume}>
             Download
@@ -211,4 +203,41 @@ export function TopBar({ resumeId }: { resumeId: string }) {
       </div>
     </header>
   )
+}
+
+function aiStatusLabel(
+  settings: ReturnType<typeof useResumeStore.getState>['aiSettings'],
+  codexStatus: 'checking' | 'ready' | 'offline',
+) {
+  if (!settings.enabled) return 'AI off'
+  if (settings.provider === 'codex-local') {
+    if (codexStatus === 'ready') return 'Codex ready'
+    if (codexStatus === 'offline') return 'Codex offline'
+    return 'Codex...'
+  }
+  if (!settings.apiKey.trim()) return 'Add AI key'
+  return 'AI ready'
+}
+
+function aiStatusTitle(
+  settings: ReturnType<typeof useResumeStore.getState>['aiSettings'],
+  codexStatus: 'checking' | 'ready' | 'offline',
+) {
+  if (!settings.enabled) return 'AI actions are disabled in settings.'
+  if (settings.provider === 'codex-local') {
+    if (codexStatus === 'ready') return 'Local Codex sidecar is reachable.'
+    if (codexStatus === 'offline') return 'Start it with npm run dev:ai or npm run ai:codex-sidecar.'
+    return 'Checking the local Codex sidecar.'
+  }
+  if (!settings.apiKey.trim()) return 'Add an API key in AI settings.'
+  return 'AI actions are enabled.'
+}
+
+function aiStatusTone(
+  settings: ReturnType<typeof useResumeStore.getState>['aiSettings'],
+  codexStatus: 'checking' | 'ready' | 'offline',
+) {
+  if (!settings.enabled) return 'neutral'
+  if (settings.provider === 'codex-local') return codexStatus === 'ready' ? 'success' : codexStatus === 'offline' ? 'danger' : 'accent'
+  return settings.apiKey.trim() ? 'success' : 'neutral'
 }

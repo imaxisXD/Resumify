@@ -14,9 +14,15 @@ export function ClassicTemplate({ preview }: { preview: PreviewResume }) {
     serif: 'font-display',
     sans: 'font-sans',
     mono: 'font-mono',
+    'source-sans': 'font-source-sans',
+    merriweather: 'font-merriweather',
+    calibri: 'font-calibri',
+    times: 'font-times',
+    'roboto-mono': 'font-roboto-mono',
   }[style.font]
   const pageClass = style.pageSize === 'letter' ? 'resume-page-letter' : 'resume-page-a4'
   const spacingClass = `resume-spacing-${style.spacing}`
+  const dividerClass = `resume-divider-${style.divider}`
 
   return (
     <article
@@ -26,8 +32,17 @@ export function ClassicTemplate({ preview }: { preview: PreviewResume }) {
         templateClass,
         fontClass,
         spacingClass,
+        dividerClass,
       )}
-      style={{ '--resume-accent': style.accentColor } as React.CSSProperties}
+      style={{
+        '--resume-accent': style.accentColor,
+        '--paper-ink': style.textColor,
+        '--resume-font-size': `${style.fontSize}px`,
+        '--resume-line-height': style.lineHeight,
+        '--resume-section-scale': style.sectionSpacing,
+        '--resume-margin-scale': style.marginScale,
+        '--resume-indent-scale': style.indent,
+      } as React.CSSProperties}
     >
       <div className="resume-page-pad">
         {preview.personal ? <PersonalHeader data={preview.personal.data} /> : null}
@@ -98,8 +113,8 @@ function SectionFor({ section }: { section: PreviewSection }) {
           <div className="resume-items flex flex-col">
             {d.items.map((it) => (
               <div key={it.id}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <div>
+                <div className="resume-item-head flex items-baseline justify-between gap-3">
+                  <div className="min-w-0">
                     <div className="resume-main">
                       {it.role || 'Role'}
                       {it.company ? (
@@ -110,7 +125,7 @@ function SectionFor({ section }: { section: PreviewSection }) {
                       <div className="resume-muted">{it.location}</div>
                     ) : null}
                   </div>
-                  <div className="resume-date">
+                  <div className="resume-date shrink-0">
                     {it.start || '—'} → {it.current ? 'present' : it.end || '—'}
                   </div>
                 </div>
@@ -135,8 +150,8 @@ function SectionFor({ section }: { section: PreviewSection }) {
         <Section title="Education">
           <div className="resume-items flex flex-col">
             {d.items.map((it) => (
-              <div key={it.id} className="flex items-baseline justify-between gap-3">
-                <div>
+              <div key={it.id} className="resume-item-head flex items-baseline justify-between gap-3">
+                <div className="min-w-0">
                   <div className="resume-main">
                     {it.school || 'School'}
                   </div>
@@ -145,7 +160,7 @@ function SectionFor({ section }: { section: PreviewSection }) {
                     {it.notes ? <span className="text-[var(--paper-ink)]/45"> — {it.notes}</span> : null}
                   </div>
                 </div>
-                <div className="resume-date">
+                <div className="resume-date shrink-0">
                   {it.start || '—'} → {it.end || '—'}
                 </div>
               </div>
@@ -174,36 +189,40 @@ function SectionFor({ section }: { section: PreviewSection }) {
       return (
         <Section title="Projects">
           <div className="resume-items flex flex-col">
-            {d.items.map((it) => (
-              <div key={it.id}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="resume-main">
-                    {it.name || 'Project'}
+            {d.items.map((it) => {
+              const url = splitImportedUrl(it.url)
+              const description = mergeProjectDescription(url.trailing, it.description)
+              return (
+                <div key={it.id}>
+                  <div className="resume-project-head">
+                    <div className="resume-main resume-breakable">
+                      {it.name || 'Project'}
+                    </div>
+                    {url.href ? (
+                      <div className="resume-muted resume-breakable">{url.href}</div>
+                    ) : null}
                   </div>
-                  {it.url ? (
-                    <div className="resume-date normal-case">{it.url}</div>
+                  {description ? (
+                    <p className="resume-copy resume-breakable resume-project-description">{description}</p>
+                  ) : null}
+                  {it.bullets?.length ? (
+                    <ul className="resume-list">
+                      {it.bullets.map((bullet) => (
+                        <li key={bullet.id} className="pl-1">
+                          {bullet.text}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {it.tech.length ? (
+                    <div className="resume-copy resume-breakable mt-1">
+                      <span className="font-semibold text-[var(--paper-ink)] normal-case">Tech Stack: </span>
+                      <span className="normal-case">{it.tech.join(', ')}</span>
+                    </div>
                   ) : null}
                 </div>
-                {it.description ? (
-                  <p className="resume-copy">{it.description}</p>
-                ) : null}
-                {it.bullets?.length ? (
-                  <ul className="resume-list">
-                    {it.bullets.map((bullet) => (
-                      <li key={bullet.id} className="pl-1">
-                        {bullet.text}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                {it.tech.length ? (
-                  <div className="resume-date mt-1">
-                    <span className="font-semibold text-[var(--paper-ink)] normal-case">Tech Stack: </span>
-                    <span className="normal-case">{it.tech.join(', ')}</span>
-                  </div>
-                ) : null}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </Section>
       )
@@ -215,12 +234,12 @@ function SectionFor({ section }: { section: PreviewSection }) {
           <div className="resume-items flex flex-col">
             {d.items.map((it) => (
               <div key={it.id}>
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="resume-main">
+                <div className="resume-item-head flex items-baseline justify-between gap-3">
+                  <div className="resume-main min-w-0">
                     {it.title}
                   </div>
                   {it.subtitle ? (
-                    <div className="resume-date">
+                    <div className="resume-date resume-breakable shrink-0">
                       {it.subtitle}
                     </div>
                   ) : null}
@@ -237,4 +256,19 @@ function SectionFor({ section }: { section: PreviewSection }) {
     default:
       return null
   }
+}
+
+function splitImportedUrl(value: string) {
+  const [href = '', ...rest] = value.split('•')
+  return {
+    href: href.trim(),
+    trailing: rest.join(' ').trim(),
+  }
+}
+
+function mergeProjectDescription(fromUrl: string, description: string) {
+  const parts = [fromUrl, description]
+    .map((part) => part.trim())
+    .filter(Boolean)
+  return Array.from(new Set(parts)).join(' ')
 }

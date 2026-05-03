@@ -75,6 +75,7 @@ type Actions = {
 }
 
 const STORAGE_KEY = 'resumify.v2'
+const AI_ENABLED_USER_CHOICE_KEY = 'resumify.ai.enabled-user-choice'
 
 export const useResumeStore = create<State & Actions>()(
   persist(
@@ -83,15 +84,21 @@ export const useResumeStore = create<State & Actions>()(
       resumes: {},
       order: [],
       selectedSectionId: null,
-      view: 'both',
+      view: 'builder',
       hasHydrated: false,
       profileLibrary: [],
       resumeHistory: {},
       jobMatches: {},
       aiSettings: {
-        enabled: false,
+        enabled: isLocalDevelopment(),
+        provider: typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'codex-local' : 'openrouter',
         apiKey: '',
-        model: 'openai/gpt-4o-mini',
+        model:
+          typeof window !== 'undefined' && window.location.hostname === 'localhost'
+            ? 'gpt-5.4-mini'
+            : 'openai/gpt-4o-mini',
+        endpoint: '',
+        localEndpoint: 'http://127.0.0.1:4317',
       },
 
       setTheme: (t) => set({ theme: t }),
@@ -105,6 +112,7 @@ export const useResumeStore = create<State & Actions>()(
           resumes: { ...s.resumes, [r.id]: r },
           order: [r.id, ...s.order],
           selectedSectionId: r.sections[0]?.id ?? null,
+          view: 'builder',
         }))
         return r.id
       },
@@ -329,6 +337,9 @@ export const useResumeStore = create<State & Actions>()(
       },
 
       setAiSettings: (patch) => {
+        if (typeof window !== 'undefined' && typeof patch.enabled === 'boolean') {
+          window.localStorage.setItem(AI_ENABLED_USER_CHOICE_KEY, 'true')
+        }
         set((s) => ({ aiSettings: { ...s.aiSettings, ...patch } }))
       },
 
@@ -355,7 +366,7 @@ export const useResumeStore = create<State & Actions>()(
           profileLibrary: backup.profileLibrary ?? s.profileLibrary,
           resumeHistory: backup.resumeHistory ?? s.resumeHistory,
           jobMatches: backup.jobMatches ?? s.jobMatches,
-          aiSettings: backup.aiSettings ?? s.aiSettings,
+          aiSettings: { ...defaultAiSettings, ...(backup.aiSettings ?? s.aiSettings) },
         }))
       },
 
@@ -404,26 +415,26 @@ export const useResumeStore = create<State & Actions>()(
         state.resumeHistory = state.resumeHistory ?? {}
         state.jobMatches = state.jobMatches ?? {}
         state.aiSettings = { ...defaultAiSettings, ...state.aiSettings }
+        if (
+          isLocalDevelopment() &&
+          state.aiSettings.provider === 'codex-local' &&
+          typeof window !== 'undefined' &&
+          !window.localStorage.getItem(AI_ENABLED_USER_CHOICE_KEY)
+        ) {
+          state.aiSettings.enabled = true
+        }
         return state
       },
-      onRehydrateStorage: () => (state, error) => {
-        if (state) {
-          state.setHasHydrated(true)
-          return
-        }
-        if (error) {
-          useResumeStore.setState({ hasHydrated: true })
-        }
-      },
+      skipHydration: true,
     },
   ),
 )
 
 if (typeof window !== 'undefined') {
   queueMicrotask(() => {
-    if (!useResumeStore.getState().hasHydrated) {
+    Promise.resolve(useResumeStore.persist.rehydrate()).finally(() => {
       useResumeStore.setState({ hasHydrated: true })
-    }
+    })
   })
 }
 
@@ -588,9 +599,19 @@ function upsertSection<K extends SectionKind>(
 }
 
 const defaultAiSettings: AiSettings = {
-  enabled: false,
+  enabled: isLocalDevelopment(),
+  provider: typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'codex-local' : 'openrouter',
   apiKey: '',
-  model: 'openai/gpt-4o-mini',
+  model:
+    typeof window !== 'undefined' && window.location.hostname === 'localhost'
+      ? 'gpt-5.4-mini'
+      : 'openai/gpt-4o-mini',
+  endpoint: '',
+  localEndpoint: 'http://127.0.0.1:4317',
+}
+
+function isLocalDevelopment() {
+  return typeof window !== 'undefined' && window.location.hostname === 'localhost'
 }
 
 function isSectionEmpty(section: ResumeSection): boolean {

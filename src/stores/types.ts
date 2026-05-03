@@ -108,10 +108,19 @@ export type ResumeSection<K extends SectionKind = SectionKind> = {
 export type TemplateId = 'classic' | 'modern' | 'compact' | 'professional'
 
 export type ResumeStyle = {
-  font: 'serif' | 'sans' | 'mono'
+  font: 'serif' | 'sans' | 'mono' | 'source-sans' | 'merriweather' | 'calibri' | 'times' | 'roboto-mono'
   spacing: 'compact' | 'normal' | 'wide'
   pageSize: 'a4' | 'letter'
   accentColor: string
+  textColor: string
+  fontSize: number
+  lineHeight: number
+  sectionSpacing: number
+  marginScale: number
+  indent: number
+  divider: 'line' | 'none' | 'accent'
+  zoom: number
+  viewAsPages: boolean
 }
 
 export const DEFAULT_RESUME_STYLE: ResumeStyle = {
@@ -119,6 +128,15 @@ export const DEFAULT_RESUME_STYLE: ResumeStyle = {
   spacing: 'compact',
   pageSize: 'a4',
   accentColor: '#0a84ff',
+  textColor: '#15151a',
+  fontSize: 13,
+  lineHeight: 1.35,
+  sectionSpacing: 1,
+  marginScale: 1,
+  indent: 1,
+  divider: 'line',
+  zoom: 100,
+  viewAsPages: true,
 }
 
 export type Resume = {
@@ -163,8 +181,11 @@ export type JobMatch = {
 
 export type AiSettings = {
   enabled: boolean
+  provider: 'codex-local' | 'openai' | 'openrouter'
   apiKey: string
   model: string
+  endpoint: string
+  localEndpoint: string
 }
 
 export type ResumeBackup = {

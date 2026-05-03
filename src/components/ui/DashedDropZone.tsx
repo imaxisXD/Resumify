@@ -1,5 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react'
-import { cn } from '../../lib/cn'
+import { cn } from '#/lib/utils'
+import { Card, CardContent } from './Card'
 
 type Props = HTMLAttributes<HTMLDivElement> & {
   icon?: ReactNode
@@ -10,29 +11,31 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 
 export function DashedDropZone({ icon, title, hint, active, className, ...rest }: Props) {
   return (
-    <div
+    <Card
       {...rest}
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed text-center transition-colors',
+        'border-dashed py-0 text-center transition-colors',
         active
-          ? 'border-[var(--accent)] bg-[var(--accent-soft)]/40'
-          : 'border-[var(--border-strong)] bg-[var(--surface)]/40 hover:bg-[var(--surface)]',
+          ? 'border-primary bg-primary/10'
+          : 'border-border bg-card/40 hover:bg-card',
         className,
       )}
     >
-      {icon ? (
-        <div className="size-10 rounded-full bg-[var(--surface-2)] border border-[var(--border)] grid place-items-center text-[var(--text-muted)] [&>svg]:size-4">
-          {icon}
+      <CardContent className="flex flex-col items-center justify-center gap-3 py-8">
+        {icon ? (
+        <div className="grid size-10 place-items-center rounded-full border border-border bg-muted text-muted-foreground [&>svg]:size-4">
+            {icon}
         </div>
-      ) : null}
-      <div className="px-6">
-        <div className="text-[14px] text-[var(--text)] font-medium">{title}</div>
+        ) : null}
+        <div className="px-6">
+        <div className="text-[14px] font-medium text-foreground">{title}</div>
         {hint ? (
-          <div className="mt-1 text-[12px] text-[var(--text-faint)] font-mono uppercase tracking-wider">
+          <div className="mt-1 font-mono text-[12px] uppercase tracking-wider text-muted-foreground">
             {hint}
           </div>
         ) : null}
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

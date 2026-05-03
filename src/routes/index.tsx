@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
-import { ArrowUpRight, Copy, FilePlus2, Trash2 } from 'lucide-react'
+import { ArrowUpRight, Copy, FilePlus2, FileUp, Trash2 } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { selectErrors, useResumeStore } from '../stores/resumeStore'
 import { Button } from '../components/ui/Button'
 import { DashedDropZone } from '../components/ui/DashedDropZone'
 import { Badge } from '../components/ui/Badge'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
+import { extractTextFromFile, parseResumeText } from '../features/importResume'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -21,12 +23,29 @@ function Home() {
   const order = useResumeStore((s) => s.order)
   const resumes = useResumeStore((s) => s.resumes)
   const createResume = useResumeStore((s) => s.createResume)
+  const replaceResume = useResumeStore((s) => s.replaceResume)
   const deleteResume = useResumeStore((s) => s.deleteResume)
   const duplicateResume = useResumeStore((s) => s.duplicateResume)
+  const importInputRef = useRef<HTMLInputElement | null>(null)
+  const [importStatus, setImportStatus] = useState('')
 
   const onCreate = () => {
     const id = createResume()
     router.navigate({ to: '/builder/$resumeId', params: { resumeId: id } })
+  }
+
+  const onImportFile = async (file: File) => {
+    setImportStatus('Reading resume...')
+    try {
+      const text = await extractTextFromFile(file)
+      const draft = parseResumeText(text)
+      const id = createResume(draft.name)
+      replaceResume(id, draft, 'Before PDF import')
+      setImportStatus('Imported resume. Opening editor...')
+      router.navigate({ to: '/builder/$resumeId', params: { resumeId: id } })
+    } catch (error) {
+      setImportStatus(error instanceof Error ? error.message : 'Could not import that file.')
+    }
   }
 
   const list = order.flatMap((id) => {
@@ -50,9 +69,28 @@ function Home() {
               Build from simple sections, reorder them, preview live, and export a clean PDF.
             </p>
           </div>
-          <Button variant="primary" size="lg" icon={<FilePlus2 size={16} />} onClick={onCreate}>
-            New Resume
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex gap-2">
+              <Button variant="secondary" size="lg" icon={<FileUp size={16} />} onClick={() => importInputRef.current?.click()}>
+                Import PDF
+              </Button>
+              <Button variant="primary" size="lg" icon={<FilePlus2 size={16} />} onClick={onCreate}>
+                New Resume
+              </Button>
+            </div>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".txt,.pdf,.doc,.docx"
+              className="hidden"
+              onChange={async (event) => {
+                const file = event.currentTarget.files?.[0]
+                event.currentTarget.value = ''
+                if (file) await onImportFile(file)
+              }}
+            />
+            {importStatus ? <p className="max-w-[34ch] text-right text-[12px] text-[var(--text-muted)]">{importStatus}</p> : null}
+          </div>
         </header>
 
         {!hydrated ? (
@@ -65,13 +103,18 @@ function Home() {
             ))}
           </div>
         ) : list.length === 0 ? (
-          <DashedDropZone
-            icon={<FilePlus2 />}
-            title="No resumes yet"
-            hint="Click New Resume to start your first one"
-            className="mt-10 h-[260px] cursor-pointer"
-            onClick={onCreate}
-          />
+          <div className="mt-10 grid gap-3">
+            <DashedDropZone
+              icon={<FileUp />}
+              title="Import an existing resume"
+              hint="Choose a PDF, DOCX, or text file and Resumify will fill the editor for review"
+              className="h-[260px] cursor-pointer"
+              onClick={() => importInputRef.current?.click()}
+            />
+            <Button variant="secondary" icon={<FilePlus2 size={14} />} onClick={onCreate}>
+              Start from blank instead
+            </Button>
+          </div>
         ) : (
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {list.map((r, idx) => (

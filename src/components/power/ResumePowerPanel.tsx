@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Check, Download, FileUp, History, KeyRound, Lightbulb, Save, Search, ShieldCheck, UserRound, X } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
@@ -6,13 +6,15 @@ import { FieldLabel, Input, TextArea } from '../ui/Input'
 import { useResumeStore } from '../../stores/resumeStore'
 import { scoreResume } from '../../features/resumeScore'
 import { matchJob } from '../../features/jobMatch'
+import { runAiTask } from '../../features/ai'
 import { extractTextFromFile, parseResumeText } from '../../features/importResume'
 import { suggestBullet } from '../../features/bulletSuggestions'
-import type { ExperienceData, Resume, ResumeBackup, ResumeSection } from '../../stores/types'
+import type { AiSuggestion } from '../../features/aiTasks'
+import type { AiSettings, ExperienceData, Resume, ResumeBackup, ResumeSection } from '../../stores/types'
 
 type Tab = 'score' | 'import' | 'job' | 'profiles' | 'history' | 'suggestions' | 'settings' | 'backup'
 
-const tabs: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
+const tabs: Array<{ id: Tab; label: string; icon: ReactNode }> = [
   { id: 'score', label: 'Score', icon: <ShieldCheck size={13} /> },
   { id: 'import', label: 'Import', icon: <FileUp size={13} /> },
   { id: 'job', label: 'Job match', icon: <Search size={13} /> },
@@ -179,7 +181,8 @@ function JobTab({ resumeId }: { resumeId: string }) {
   const saveJobMatch = useResumeStore((s) => s.saveJobMatch)
   const aiSettings = useResumeStore((s) => s.aiSettings)
   const [description, setDescription] = useState('')
-  const [aiText, setAiText] = useState('')
+  const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null)
+  const [aiStatus, setAiStatus] = useState('')
   const [saved, setSaved] = useState(false)
   const result = useMemo(() => (resume && description ? matchJob(resume, description) : null), [resume, description])
   if (!resume) return null
@@ -213,19 +216,21 @@ function JobTab({ resumeId }: { resumeId: string }) {
               size="sm"
               variant="secondary"
               onClick={async () => {
-                setAiText('Asking AI...')
+                setAiStatus('Asking AI...')
+                setAiSuggestion(null)
                 try {
-                  const { suggestKeywordsWithAi } = await import('../../features/ai')
-                  setAiText(await suggestKeywordsWithAi(aiSettings, JSON.stringify(resume), description))
+                  setAiSuggestion(await runAiTask(aiSettings, { kind: 'job-match-optimizer', resume, jobDescription: description }))
+                  setAiStatus('')
                 } catch (error) {
-                  setAiText(error instanceof Error ? error.message : 'AI failed.')
+                  setAiStatus(error instanceof Error ? error.message : 'AI failed.')
                 }
               }}
             >
               Ask AI
             </Button>
           </div>
-          {aiText ? <Notice tone={aiText.includes('Add your OpenRouter') || aiText.includes('failed') ? 'error' : 'info'}>{aiText}</Notice> : null}
+          {aiStatus ? <Notice tone={aiStatus.includes('failed') || aiStatus.includes('Add your') ? 'error' : 'info'}>{aiStatus}</Notice> : null}
+          {aiSuggestion ? <AiReviewCard suggestion={aiSuggestion} onDismiss={() => setAiSuggestion(null)} /> : null}
         </>
       ) : null}
     </div>
@@ -298,8 +303,10 @@ function HistoryTab({ resumeId }: { resumeId: string }) {
 function SuggestionsTab({ resumeId }: { resumeId: string }) {
   const resume = useResumeStore((s) => s.resumes[resumeId])
   const updateSectionData = useResumeStore((s) => s.updateSectionData)
+  const saveSnapshot = useResumeStore((s) => s.saveSnapshot)
   const aiSettings = useResumeStore((s) => s.aiSettings)
-  const [aiResult, setAiResult] = useState('')
+  const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null)
+  const [aiStatus, setAiStatus] = useState('')
   const [aiTarget, setAiTarget] = useState<{ itemId: string; bulletId: string } | null>(null)
   const experience = resume?.sections.find((section) => section.type === 'experience')
   const items = (experience?.data as ExperienceData | undefined)?.items ?? []
@@ -337,13 +344,21 @@ function SuggestionsTab({ resumeId }: { resumeId: string }) {
                   size="sm"
                   variant="secondary"
                   onClick={async () => {
-                    setAiResult('Asking AI...')
+                    setAiStatus('Asking AI...')
+                    setAiSuggestion(null)
                     setAiTarget({ itemId: item.id, bulletId: bullet.id })
                     try {
-                      const { improveBulletWithAi } = await import('../../features/ai')
-                      setAiResult(await improveBulletWithAi(aiSettings, bullet.text))
+                      setAiSuggestion(await runAiTask(aiSettings, {
+                        kind: 'bullet-doctor',
+                        bullet: bullet.text,
+                        role: item.role,
+                        company: item.company,
+                        mode: 'stronger',
+                        resume,
+                      }))
+                      setAiStatus('')
                     } catch (error) {
-                      setAiResult(error instanceof Error ? error.message : 'AI failed.')
+                      setAiStatus(error instanceof Error ? error.message : 'AI failed.')
                     }
                   }}
                 >
@@ -354,37 +369,86 @@ function SuggestionsTab({ resumeId }: { resumeId: string }) {
           )
         }),
       )}
-      {aiResult ? (
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
-          <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-faint)] mb-2">
-            AI suggestion
-          </div>
-          <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">{aiResult}</p>
-          {aiTarget && experience && !aiResult.includes('Asking AI') && !aiResult.includes('Add your OpenRouter') ? (
-            <Button
-              size="sm"
-              className="mt-3"
-              onClick={() => {
-                updateSectionData(resumeId, experience.id, {
-                  items: items.map((entry) =>
-                    entry.id === aiTarget.itemId
-                      ? {
-                          ...entry,
-                          bullets: entry.bullets.map((entryBullet) =>
-                            entryBullet.id === aiTarget.bulletId ? { ...entryBullet, text: cleanAiBullet(aiResult) } : entryBullet,
-                          ),
-                        }
-                      : entry,
-                  ),
-                })
-              }}
-            >
-              Apply AI text
-            </Button>
-          ) : null}
-        </div>
+      {aiStatus ? <Notice tone={aiStatus.includes('failed') || aiStatus.includes('Add your') ? 'error' : 'info'}>{aiStatus}</Notice> : null}
+      {aiSuggestion ? (
+        <AiReviewCard
+          key={`${aiTarget?.bulletId ?? 'none'}-${aiSuggestion.suggestions[0]?.id ?? 'suggestion'}`}
+          suggestion={aiSuggestion}
+          onDismiss={() => setAiSuggestion(null)}
+          onApply={(value) => {
+            if (!aiTarget || !experience) return
+            saveSnapshot(resumeId, 'Before AI bullet apply')
+            updateSectionData(resumeId, experience.id, {
+              items: items.map((entry) =>
+                entry.id === aiTarget.itemId
+                  ? {
+                      ...entry,
+                      bullets: entry.bullets.map((entryBullet) =>
+                        entryBullet.id === aiTarget.bulletId ? { ...entryBullet, text: cleanAiBullet(value) } : entryBullet,
+                      ),
+                    }
+                  : entry,
+              ),
+            })
+            setAiSuggestion(null)
+          }}
+        />
       ) : null}
       {!items.length ? <EmptyText>Add work bullets to see suggestions.</EmptyText> : null}
+    </div>
+  )
+}
+
+function AiReviewCard({
+  suggestion,
+  onApply,
+  onDismiss,
+}: {
+  suggestion: AiSuggestion
+  onApply?: (value: string) => void
+  onDismiss: () => void
+}) {
+  const firstSuggestion = suggestion.suggestions[0]
+  const [draft, setDraft] = useState(firstSuggestion?.value ?? '')
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
+            {suggestion.title}
+          </div>
+          <p className="mt-1 text-[12px] text-[var(--text-muted)] leading-relaxed">{suggestion.summary}</p>
+        </div>
+        <button type="button" onClick={onDismiss} className="text-[var(--text-faint)] hover:text-[var(--text)]" aria-label="Dismiss AI suggestion">
+          <X size={14} />
+        </button>
+      </div>
+      {firstSuggestion ? (
+        <>
+          <FieldLabel className="mt-3">{firstSuggestion.label}</FieldLabel>
+          <TextArea value={draft} onChange={(e) => setDraft(e.currentTarget.value)} />
+          {firstSuggestion.rationale ? <p className="mt-2 text-[11.5px] text-[var(--text-faint)]">{firstSuggestion.rationale}</p> : null}
+          <div className="mt-3 flex gap-2">
+            {onApply ? (
+              <Button size="sm" variant="primary" onClick={() => onApply(draft)} disabled={!draft.trim()}>
+                Apply
+              </Button>
+            ) : null}
+            <Button size="sm" variant="secondary" onClick={onDismiss}>
+              Dismiss
+            </Button>
+          </div>
+        </>
+      ) : null}
+      {suggestion.questions?.length ? (
+        <ul className="mt-3 space-y-1.5">
+          {suggestion.questions.map((question) => (
+            <li key={question} className="text-[12px] leading-relaxed text-[var(--text)]">
+              {question}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   )
 }
@@ -392,23 +456,66 @@ function SuggestionsTab({ resumeId }: { resumeId: string }) {
 function SettingsTab() {
   const settings = useResumeStore((s) => s.aiSettings)
   const setAiSettings = useResumeStore((s) => s.setAiSettings)
+  const needsApiKey = settings.provider !== 'codex-local'
   return (
     <div className="space-y-4">
       <PanelTitle title="AI settings" />
-      <Notice tone="info">AI is optional. Rule checks work without a key.</Notice>
+      <Notice tone="info">AI runs only when you press an AI action. Resume text is shown in context and suggestions stay reviewable.</Notice>
       <label className="flex items-center gap-2 text-[13px] text-[var(--text)]">
         <input type="checkbox" checked={settings.enabled} onChange={(e) => setAiSettings({ enabled: e.currentTarget.checked })} />
         Enable AI actions
       </label>
-      <FieldLabel>OpenRouter key</FieldLabel>
-      <Input type="password" value={settings.apiKey} onChange={(e) => setAiSettings({ apiKey: e.currentTarget.value })} />
+      <FieldLabel>Provider</FieldLabel>
+      <select
+        value={settings.provider}
+        onChange={(e) => setAiSettings(defaultsForProvider(e.currentTarget.value as AiSettings['provider']))}
+        className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 text-[13px] text-[var(--text)] outline-none focus:border-[var(--accent)]"
+      >
+        <option value="codex-local">Local Codex sidecar</option>
+        <option value="openai">OpenAI Responses API</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+      {settings.provider === 'codex-local' ? (
+        <>
+          <FieldLabel>Sidecar URL</FieldLabel>
+          <Input value={settings.localEndpoint} onChange={(e) => setAiSettings({ localEndpoint: e.currentTarget.value })} />
+        </>
+      ) : null}
+      {settings.provider === 'openai' ? (
+        <>
+          <FieldLabel>Endpoint</FieldLabel>
+          <Input
+            value={settings.endpoint}
+            placeholder="https://api.openai.com/v1/responses"
+            onChange={(e) => setAiSettings({ endpoint: e.currentTarget.value })}
+          />
+        </>
+      ) : null}
+      {needsApiKey ? (
+        <>
+          <FieldLabel>{settings.provider === 'openai' ? 'OpenAI key' : 'OpenRouter key'}</FieldLabel>
+          <Input type="password" value={settings.apiKey} onChange={(e) => setAiSettings({ apiKey: e.currentTarget.value })} />
+        </>
+      ) : null}
       <FieldLabel>Model</FieldLabel>
       <Input value={settings.model} onChange={(e) => setAiSettings({ model: e.currentTarget.value })} />
       <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
-        The key is saved in this browser and is used only when you press an AI button.
+        {settings.provider === 'codex-local'
+          ? 'Use npm run dev:ai for the app plus local harness, or npm run ai:codex-sidecar for only the sidecar. The browser can only call resume-safe endpoints.'
+          : 'The key is saved in this browser and is used only after you click an AI action.'}
       </p>
     </div>
   )
+}
+
+function defaultsForProvider(provider: AiSettings['provider']): Partial<AiSettings> {
+  if (provider === 'codex-local') {
+    return { provider, model: 'gpt-5.4-mini', localEndpoint: 'http://127.0.0.1:4317' }
+  }
+  if (provider === 'openai') {
+    return { provider, model: 'gpt-5.4-mini', endpoint: 'https://api.openai.com/v1/responses' }
+  }
+  return { provider, model: 'openai/gpt-4o-mini', endpoint: '' }
 }
 
 function BackupTab() {
@@ -497,7 +604,7 @@ function KeywordList({ title, words }: { title: string; words: Array<string> }) 
   )
 }
 
-function MiniCard({ title, meta, children }: { title: string; meta?: string; children: React.ReactNode }) {
+function MiniCard({ title, meta, children }: { title: string; meta?: string; children: ReactNode }) {
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-3">
       <div className="font-medium text-[13px] text-[var(--text)]">{title}</div>
@@ -507,11 +614,11 @@ function MiniCard({ title, meta, children }: { title: string; meta?: string; chi
   )
 }
 
-function EmptyText({ children }: { children: React.ReactNode }) {
+function EmptyText({ children }: { children: ReactNode }) {
   return <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">{children}</p>
 }
 
-function Notice({ children, tone = 'info' }: { children: React.ReactNode; tone?: 'info' | 'error' }) {
+function Notice({ children, tone = 'info' }: { children: ReactNode; tone?: 'info' | 'error' }) {
   return (
     <div
       className={`rounded-xl border px-3 py-2.5 text-[12px] leading-relaxed ${

@@ -8,6 +8,14 @@
 @import "@fontsource/geist-sans/600.css";
 @import "@fontsource/geist-mono/400.css";
 @import "@fontsource/geist-mono/500.css";
+@import "@fontsource/karla/400.css";
+@import "@fontsource/vollkorn/400.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-display: "Instrument Serif", ui-serif, Georgia, serif;
@@ -19,8 +27,8 @@
   --color-surface: #15151a;
   --color-surface-2: #1c1c22;
   --color-surface-3: #25252d;
-  --color-border: #26262d;
-  --color-border-strong: #34343d;
+  --color-border: #202027;
+  --color-border-strong: #2b2b34;
   --color-text: #e9e9ee;
   --color-text-muted: #8b8b95;
   --color-text-faint: #5a5a64;
@@ -53,8 +61,8 @@
   --surface: var(--color-surface);
   --surface-2: var(--color-surface-2);
   --surface-3: var(--color-surface-3);
-  --border: var(--color-border);
-  --border-strong: var(--color-border-strong);
+  --border: rgb(255 255 255 / 0.055);
+  --border-strong: rgb(255 255 255 / 0.095);
   --text: var(--color-text);
   --text-muted: var(--color-text-muted);
   --text-faint: var(--color-text-faint);
@@ -67,6 +75,36 @@
   --paper: var(--color-paper);
   --paper-ink: var(--color-paper-ink);
   --grid-dot: rgba(255, 255, 255, 0.045);
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--bg-elevated);
+  --popover-foreground: var(--text);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-muted);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --input: rgb(255 255 255 / 0.085);
+  --ring: rgb(124 124 255 / 0.58);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--accent);
 }
 
 [data-theme="light"] {
@@ -76,8 +114,8 @@
   --surface: #ffffff;
   --surface-2: #fafaf7;
   --surface-3: #efeee8;
-  --border: #e3e1d8;
-  --border-strong: #cfccc0;
+  --border: rgb(20 20 25 / 0.09);
+  --border-strong: rgb(20 20 25 / 0.16);
   --text: #1a1a1f;
   --text-muted: #6b6b73;
   --text-faint: #9a9aa3;
@@ -90,6 +128,8 @@
   --paper: #ffffff;
   --paper-ink: #15151a;
   --grid-dot: rgba(0, 0, 0, 0.06);
+  --input: rgb(20 20 25 / 0.12);
+  --ring: rgb(91 91 239 / 0.48);
 }
 
 [data-theme="riso"] {
@@ -184,6 +224,10 @@ button { cursor: pointer; }
   font-feature-settings: "kern";
 }
 
+.resume-template * {
+  min-width: 0;
+}
+
 .resume-page-a4 {
   aspect-ratio: 210 / 297;
 }
@@ -193,7 +237,7 @@ button { cursor: pointer; }
 }
 
 .resume-page-pad {
-  padding: 48px;
+  padding: calc(48px * var(--resume-margin-scale, 1));
 }
 
 .resume-header {
@@ -252,10 +296,21 @@ button { cursor: pointer; }
   background: color-mix(in oklab, var(--paper-ink) 15%, transparent);
 }
 
+.resume-divider-none .resume-section-head span {
+  display: none;
+}
+
+.resume-divider-accent .resume-section-head span {
+  height: 2px;
+  background: var(--resume-accent);
+}
+
 .resume-copy {
+  margin: 0;
   color: color-mix(in oklab, var(--paper-ink) 80%, transparent);
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: calc(var(--resume-font-size, 13px) * 0.96);
+  line-height: var(--resume-line-height, 1.55);
+  overflow-wrap: break-word;
 }
 
 .resume-main {
@@ -263,24 +318,45 @@ button { cursor: pointer; }
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: 0;
+  overflow-wrap: break-word;
 }
 
 .resume-muted {
   color: color-mix(in oklab, var(--paper-ink) 55%, transparent);
   font-size: 12px;
+  overflow-wrap: break-word;
 }
 
 .resume-date {
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
+.resume-breakable {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.resume-project-head {
+  display: grid;
+  gap: 1px;
+}
+
+.resume-project-description {
+  margin-top: 2px;
+}
+
 .resume-list {
-  margin: 6px 0 0 16px;
+  margin: 6px 0 0 calc(16px * var(--resume-indent-scale, 1));
   list-style-type: square;
   color: color-mix(in oklab, var(--paper-ink) 80%, transparent);
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: calc(var(--resume-font-size, 13px) * 0.96);
+  line-height: var(--resume-line-height, 1.55);
+  overflow-wrap: break-word;
 }
 
 .resume-list::marker {
@@ -288,36 +364,36 @@ button { cursor: pointer; }
 }
 
 .resume-items {
-  gap: 14px;
+  gap: calc(14px * var(--resume-section-scale, 1));
 }
 
 .resume-spacing-compact .resume-page-pad {
-  padding: 36px 42px;
+  padding: calc(36px * var(--resume-margin-scale, 1)) calc(42px * var(--resume-margin-scale, 1));
 }
 
 .resume-spacing-compact .resume-sections {
   margin-top: 22px;
-  gap: 18px;
+  gap: calc(18px * var(--resume-section-scale, 1));
 }
 
 .resume-spacing-compact .resume-items {
-  gap: 9px;
+  gap: calc(9px * var(--resume-section-scale, 1));
 }
 
 .resume-spacing-normal .resume-sections {
-  gap: 28px;
+  gap: calc(28px * var(--resume-section-scale, 1));
 }
 
 .resume-spacing-wide .resume-page-pad {
-  padding: 56px;
+  padding: calc(56px * var(--resume-margin-scale, 1));
 }
 
 .resume-spacing-wide .resume-sections {
-  gap: 34px;
+  gap: calc(34px * var(--resume-section-scale, 1));
 }
 
 .resume-spacing-wide .resume-items {
-  gap: 18px;
+  gap: calc(18px * var(--resume-section-scale, 1));
 }
 
 .resume-modern .resume-header {
@@ -365,7 +441,7 @@ button { cursor: pointer; }
 }
 
 .resume-professional .resume-page-pad {
-  padding: 52px 60px 44px;
+  padding: calc(52px * var(--resume-margin-scale, 1)) calc(60px * var(--resume-margin-scale, 1)) calc(44px * var(--resume-margin-scale, 1));
 }
 
 .resume-professional .resume-header {
@@ -436,15 +512,21 @@ button { cursor: pointer; }
 
 .resume-professional .resume-copy,
 .resume-professional .resume-list {
-  font-size: 13px;
-  line-height: 1.32;
+  font-size: var(--resume-font-size, 13px);
+  line-height: var(--resume-line-height, 1.32);
 }
 
 .resume-professional .resume-list {
   margin-top: 8px;
-  margin-left: 22px;
+  margin-left: calc(22px * var(--resume-indent-scale, 1));
   list-style-type: disc;
 }
+
+.font-source-sans { font-family: "Karla", var(--font-sans); }
+.font-merriweather { font-family: "Vollkorn", ui-serif, Georgia, serif; }
+.font-calibri { font-family: Calibri, "Segoe UI", var(--font-sans); }
+.font-times { font-family: "Times New Roman", Times, serif; }
+.font-roboto-mono { font-family: "JetBrains Mono", var(--font-mono); }
 
 .resume-professional .resume-date {
   min-width: 150px;
@@ -558,5 +640,94 @@ button { cursor: pointer; }
     min-height: 100vh;
     width: 100% !important;
     box-shadow: none !important;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+.dark {
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--bg-elevated);
+  --popover-foreground: var(--text);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--text);
+  --destructive: var(--danger);
+  --border: rgb(255 255 255 / 0.055);
+  --input: rgb(255 255 255 / 0.085);
+  --ring: rgb(124 124 255 / 0.58);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }

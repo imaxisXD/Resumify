@@ -19,7 +19,7 @@ const navigation: Array<Item> = [
 ]
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
   const { pathname } = useLocation()
   const router = useRouter()
   const createResume = useResumeStore((s) => s.createResume)

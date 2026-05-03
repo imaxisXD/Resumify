@@ -1,4 +1,5 @@
-import { cn } from '../../lib/cn'
+import { ToggleGroup, ToggleGroupItem } from './toggle-group'
+import { cn } from '#/lib/utils'
 
 type Props<T extends string> = {
   value: T
@@ -14,31 +15,34 @@ export function SegmentedControl<T extends string>({
   className,
 }: Props<T>) {
   return (
-    <div
+    <ToggleGroup
+      type="single"
+      value={value}
+      onValueChange={(next) => {
+        if (next) onChange(next as T)
+      }}
+      variant="outline"
+      size="default"
+      spacing={0}
       className={cn(
-        'inline-flex items-center p-0.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] gap-0.5',
+        'rounded-lg border border-border bg-card p-0.5',
         className,
       )}
     >
-      {options.map((opt) => {
-        const active = opt.value === value
-        return (
-          <button
+      {options.map((opt) => (
+          <ToggleGroupItem
             key={opt.value}
-            type="button"
-            onClick={() => onChange(opt.value)}
+            value={opt.value}
+            aria-label={opt.label}
             className={cn(
-              'inline-flex items-center gap-1.5 h-8 min-w-8 px-2 rounded text-[11.5px] font-medium transition-[background,color,border-color,transform] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.95] active:duration-100 duration-200',
-              active
-                ? 'bg-[var(--accent-soft)] text-[var(--accent-hi)] border border-[var(--accent-hi)]/30'
-                : 'border border-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]',
+              'gap-1.5 border-transparent text-[11.5px]',
+              opt.value === value ? 'bg-primary/10 text-primary' : 'text-muted-foreground',
             )}
           >
-            {opt.icon ? <span className="[&>svg]:size-3">{opt.icon}</span> : null}
+            {opt.icon ? <span data-icon="inline-start">{opt.icon}</span> : null}
             {opt.label}
-          </button>
-        )
-      })}
-    </div>
+          </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   )
 }
